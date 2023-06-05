@@ -1,0 +1,50 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
+  name: apolloportals.apollo.io
+spec:
+  group: apollo.io
+  names:
+    kind: ApolloPortal
+    listKind: ApolloPortalList
+    plural: apolloportals
+    singular: apolloportal
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ApolloPortal is the Schema for the apolloportals API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ApolloPortalSpec defines the desired state of ApolloPortal
+            properties:
+              foo:
+                description: Foo is an example field of ApolloPortal. Edit apolloportal_types.go
+                  to remove/update
+                type: string
+            type: object
+          status:
+            description: ApolloPortalStatus defines the observed state of ApolloPortal
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

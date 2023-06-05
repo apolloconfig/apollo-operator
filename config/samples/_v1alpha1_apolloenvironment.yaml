@@ -1,0 +1,16 @@
+apiVersion: apollo.io/v1alpha1
+kind: ApolloEnvironment
+metadata:
+  name: apolloenvironment-sample
+  labels:
+    app: apollo
+spec:
+  # TODO(user): Add fields here
+  foo: test
+  imageConfigService: apolloconfig/apollo-configservice:latest
+  #imageConfigService: nginx:latest
+  imageAdminService: apolloconfig/apollo-adminservice:latest
+  #imageAdminService: nginx:latest
+  configServiceCount: 2
+  adminServiceCount: 2
+  mysqlEmbedded: true

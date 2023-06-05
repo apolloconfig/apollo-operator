@@ -1,0 +1,6 @@
+apiVersion: apollo.io/v1alpha1
+kind: ApolloPortal
+metadata:
+  name: apolloportal-sample
+spec:
+  # TODO(user): Add fields here
