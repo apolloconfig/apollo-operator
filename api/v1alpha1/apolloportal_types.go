@@ -28,8 +28,33 @@ type ApolloPortalSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of ApolloPortal. Edit apolloportal_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Image string `json:"image,omitempty"`
+
+	Config Config `json:"config,omitempty"`
+
+	PortalDB PortalDB `json:"portaldb,omitempty"`
+}
+
+type Config struct {
+	Envs        string            `json:"envs,omitempty"`
+	MetaServers map[string]string `json:"metaServers,omitempty"`
+	File        map[string]string `json:"file,omitempty"`
+}
+
+type PortalDB struct {
+	Username                   string          `json:"username,omitempty"`
+	Password                   string          `json:"password,omitempty"`
+	Host                       string          `json:"host,omitempty"`
+	Port                       string          `json:"port,omitempty"`
+	DBName                     string          `json:"dbName,omitempty"`
+	ConnectionStringProperties string          `json:"connectionStringProperties,omitempty"`
+	Service                    PortalDBService `json:"service,omitempty"`
+}
+
+type PortalDBService struct {
+	Name string `json:"name,omitempty"`
+	Port string `json:"port,omitempty"`
+	Type string `json:"type,omitempty"`
 }
 
 // ApolloPortalStatus defines the observed state of ApolloPortal

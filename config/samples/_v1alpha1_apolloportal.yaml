@@ -4,3 +4,22 @@ metadata:
   name: apolloportal-sample
 spec:
   # TODO(user): Add fields here
+  image: apolloconfig/apollo-portal:2.1.0
+  config:
+    envs: dev
+    metaServers:
+      dev: testDEVaaaaaaa
+    file:
+      file1: test1
+      file2: test2
+  portaldb:
+    username: root
+    password: mysqlpw
+    host: 127.0.0.1
+    port: "3306"
+    dbName: ApolloPortal
+    connectionStringProperties: testPropertiesaaaaaaaaa
+    service:
+      name: testServiceName
+      port: "3306"
+      type: clusterIP

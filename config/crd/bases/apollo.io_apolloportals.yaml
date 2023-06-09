@@ -35,10 +35,45 @@ spec:
           spec:
             description: ApolloPortalSpec defines the desired state of ApolloPortal
             properties:
-              foo:
-                description: Foo is an example field of ApolloPortal. Edit apolloportal_types.go
-                  to remove/update
+              config:
+                properties:
+                  envs:
+                    type: string
+                  file:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  metaServers:
+                    additionalProperties:
+                      type: string
+                    type: object
+                type: object
+              image:
                 type: string
+              portaldb:
+                properties:
+                  connectionStringProperties:
+                    type: string
+                  dbName:
+                    type: string
+                  host:
+                    type: string
+                  password:
+                    type: string
+                  port:
+                    type: string
+                  service:
+                    properties:
+                      name:
+                        type: string
+                      port:
+                        type: string
+                      type:
+                        type: string
+                    type: object
+                  username:
+                    type: string
+                type: object
             type: object
           status:
             description: ApolloPortalStatus defines the observed state of ApolloPortal
