@@ -16,10 +16,10 @@ spec:
     username: root
     password: mysqlpw
     host: 127.0.0.1
-    port: "3306"
+    port: 3306
     dbName: ApolloPortal
     connectionStringProperties: testPropertiesaaaaaaaaa
     service:
       name: testServiceName
-      port: "3306"
+      port: 3306
       type: clusterIP

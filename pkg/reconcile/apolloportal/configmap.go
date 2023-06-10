@@ -41,9 +41,9 @@ func ConfigMaps(ctx context.Context, params Params) error {
 
 func desiredConfigMap(ctx context.Context, params Params) corev1.ConfigMap {
 	name := naming.ConfigMap(&params.Instance)
-	labels := reconcile.Labels(params.Instance, name, []string{})
+	labels := reconcile.Labels(&params.Instance, name, []string{})
 
-	config, _ := getConfig(ctx, params.Instance)
+	config, _ := buildConfig(ctx, params.Instance)
 
 	return corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -77,7 +77,6 @@ func expectedConfigMaps(ctx context.Context, params Params, expected []corev1.Co
 						// somethin else happened now...
 						return err
 					}
-
 					// we succeeded in the retry, exit this attempt
 					return nil
 				}
@@ -95,22 +94,12 @@ func expectedConfigMaps(ctx context.Context, params Params, expected []corev1.Co
 		// TODO 删除该日志
 		params.Log.V(2).Info("查看existing和updated", "existing configmap：", existing, "updated configmap：", updated)
 
-		if updated.Annotations == nil {
-			updated.Annotations = map[string]string{}
-		}
-		if updated.Labels == nil {
-			updated.Labels = map[string]string{}
-		}
+		updated.SetAnnotations(desired.GetAnnotations())
+		updated.SetLabels(desired.GetLabels())
+		updated.SetOwnerReferences(desired.GetOwnerReferences())
 
 		updated.Data = desired.Data
 		updated.BinaryData = desired.BinaryData
-		updated.ObjectMeta.OwnerReferences = desired.ObjectMeta.OwnerReferences
-		for k, v := range desired.ObjectMeta.Annotations {
-			updated.ObjectMeta.Annotations[k] = v
-		}
-		for k, v := range desired.ObjectMeta.Labels {
-			updated.ObjectMeta.Labels[k] = v
-		}
 
 		// 将旧的configmap修改为新的configmap
 		patch := client.MergeFrom(existing)
@@ -133,7 +122,7 @@ func deleteConfigMaps(ctx context.Context, params Params, expected []corev1.Conf
 		client.InNamespace(params.Instance.Namespace),
 		client.MatchingLabels(map[string]string{
 			"app.kubernetes.io/instance":   naming.Truncate("%s.%s", 63, params.Instance.Namespace, params.Instance.Name),
-			"app.kubernetes.io/managed-by": "apollo-portal-operator",
+			"app.kubernetes.io/managed-by": "apollo-operator",
 		}),
 	}
 	configmaplist := &corev1.ConfigMapList{}
@@ -163,7 +152,7 @@ func deleteConfigMaps(ctx context.Context, params Params, expected []corev1.Conf
 	return nil
 }
 
-func getConfig(ctx context.Context, instance apolloiov1alpha1.ApolloPortal) (map[string]string, error) {
+func buildConfig(_ context.Context, instance apolloiov1alpha1.ApolloPortal) (map[string]string, error) {
 	// 从instance提取出configmap的data部分
 	data := map[string]string{}
 
@@ -180,8 +169,8 @@ func getConfig(ctx context.Context, instance apolloiov1alpha1.ApolloPortal) (map
 		fmt.Sprintf("spring.datasource.username = %s", instance.Spec.PortalDB.Username),
 		fmt.Sprintf("spring.datasource.password = %s", instance.Spec.PortalDB.Password),
 		fmt.Sprintf("spring.datasource.url = jdbc:mysql://%s.%s:%s/%s",
-			naming.ServiceWithSuffix(&instance, "-portaldb"), // 确保和portaldb服务名一致
-			instance.Namespace,                               // 确保和portaldb服务的命名空间一致
+			naming.ResourceNameWithSuffix(&instance, "portaldb"), // 一定要确保和portaldb服务名一致
+			instance.Namespace,                                   // 一定要确保和portaldb服务的命名空间一致
 			instance.Spec.PortalDB.Service.Port,
 			instance.Spec.PortalDB.ConnectionStringProperties),
 	}
@@ -201,6 +190,6 @@ func getConfig(ctx context.Context, instance apolloiov1alpha1.ApolloPortal) (map
 
 }
 
-func configMapChanged(desired *corev1.ConfigMap, actual *corev1.ConfigMap) bool {
-	return !reflect.DeepEqual(desired.Data, actual.Data)
+func configMapChanged(desired *corev1.ConfigMap, existing *corev1.ConfigMap) bool {
+	return !reflect.DeepEqual(desired.Data, existing.Data)
 }

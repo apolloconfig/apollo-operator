@@ -24,7 +24,7 @@ import (
 	"github.com/go-logr/logr"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -142,7 +142,7 @@ func (r *ApolloPortalReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// TODO(user): your logic here
 	var instance apolloiov1alpha1.ApolloPortal
 	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {
-		if !apierrors.IsNotFound(err) {
+		if !k8serrors.IsNotFound(err) {
 			log.Error(err, "unable to fetch OpenTelemetryCollector")
 		}
 
@@ -175,7 +175,7 @@ func (r *ApolloPortalReconciler) RunTasks(ctx context.Context, params apolloport
 	for _, task := range r.tasks {
 		if err := task.Do(ctx, params); err != nil {
 			// If we get an error that occurs because a pod is being terminated, then exit this loop
-			if apierrors.IsForbidden(err) && apierrors.HasStatusCause(err, corev1.NamespaceTerminatingCause) {
+			if k8serrors.IsForbidden(err) && k8serrors.HasStatusCause(err, corev1.NamespaceTerminatingCause) {
 				r.log.V(2).Info("Exiting reconcile loop because namespace is being terminated", "namespace", params.Instance.Namespace)
 				return nil
 			}

@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,9 +31,18 @@ type ApolloPortalSpec struct {
 
 	Image string `json:"image,omitempty"`
 
+	Service Service `json:"service,omitempty"`
+
 	Config Config `json:"config,omitempty"`
 
 	PortalDB PortalDB `json:"portaldb,omitempty"`
+}
+
+type Service struct {
+	Port            int32                  `json:"port"`
+	TargetPort      int32                  `json:"targetPort"`
+	Type            corev1.ServiceType     `json:"type"`
+	SessionAffinity corev1.ServiceAffinity `json:"sessionAffinity"`
 }
 
 type Config struct {
@@ -45,16 +55,16 @@ type PortalDB struct {
 	Username                   string          `json:"username,omitempty"`
 	Password                   string          `json:"password,omitempty"`
 	Host                       string          `json:"host,omitempty"`
-	Port                       string          `json:"port,omitempty"`
+	Port                       int32           `json:"port,omitempty"`
 	DBName                     string          `json:"dbName,omitempty"`
 	ConnectionStringProperties string          `json:"connectionStringProperties,omitempty"`
 	Service                    PortalDBService `json:"service,omitempty"`
 }
 
 type PortalDBService struct {
-	Name string `json:"name,omitempty"`
-	Port string `json:"port,omitempty"`
-	Type string `json:"type,omitempty"`
+	Name string             `json:"name,omitempty"`
+	Port int32              `json:"port,omitempty"`
+	Type corev1.ServiceType `json:"type,omitempty"`
 }
 
 // ApolloPortalStatus defines the observed state of ApolloPortal
