@@ -50,7 +50,7 @@ type ApolloEnvironmentReconciler struct {
 func (r *ApolloEnvironmentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	logger.Info("进入Reconcile", "ApolloEnvironment", "刚进入")
+	logger.Info("进入ApolloEnvironmentReconciler Reconcile", "ApolloEnvironment", "刚进入")
 	// TODO(user): your logic here
 	apolloEnvironmentInstance := &apolloiov1alpha1.ApolloEnvironment{}
 	err := r.Client.Get(ctx, req.NamespacedName, apolloEnvironmentInstance)

@@ -3,6 +3,7 @@ package apolloportal
 import (
 	apolloiov1alpha1 "apollo.io/apollo-operator/api/v1alpha1"
 	"apollo.io/apollo-operator/pkg/reconcile"
+	"apollo.io/apollo-operator/pkg/utils"
 	"apollo.io/apollo-operator/pkg/utils/naming"
 	"context"
 	"fmt"
@@ -40,6 +41,7 @@ func ConfigMaps(ctx context.Context, params Params) error {
 }
 
 func desiredConfigMap(ctx context.Context, params Params) corev1.ConfigMap {
+	// NOTE 一定要和volume中使用的名字一致
 	name := naming.ConfigMap(&params.Instance)
 	labels := reconcile.Labels(&params.Instance, name, []string{})
 
@@ -91,6 +93,7 @@ func expectedConfigMaps(ctx context.Context, params Params, expected []corev1.Co
 
 		// it exists already, merge the two if the end result isn't identical to the existing one
 		updated := existing.DeepCopy()
+		utils.InitObjectMeta(updated)
 		// TODO 删除该日志
 		params.Log.V(2).Info("查看existing和updated", "existing configmap：", existing, "updated configmap：", updated)
 
@@ -157,6 +160,7 @@ func buildConfig(_ context.Context, instance apolloiov1alpha1.ApolloPortal) (map
 	data := map[string]string{}
 
 	// apollo-env.properties
+	// TODO 配置meta服务的地址，比如CR中指定configservice的namespace和name
 	var apolloEnvConfig []string
 	for env, address := range instance.Spec.Config.MetaServers {
 		apolloEnvConfig = append(apolloEnvConfig, fmt.Sprintf("%s.meta = %s", env, address))
@@ -168,18 +172,22 @@ func buildConfig(_ context.Context, instance apolloiov1alpha1.ApolloPortal) (map
 	apolloGithubConfig := []string{
 		fmt.Sprintf("spring.datasource.username = %s", instance.Spec.PortalDB.Username),
 		fmt.Sprintf("spring.datasource.password = %s", instance.Spec.PortalDB.Password),
-		fmt.Sprintf("spring.datasource.url = jdbc:mysql://%s.%s:%s/%s",
-			naming.ResourceNameWithSuffix(&instance, "portaldb"), // 一定要确保和portaldb服务名一致
-			instance.Namespace,                                   // 一定要确保和portaldb服务的命名空间一致
+		fmt.Sprintf("spring.datasource.url = jdbc:mysql://%s.%s:%d/%s?%s",
+			naming.PortalDBService(&instance), // NOTE 一定要确保和portaldb服务名一致
+			instance.Namespace,                // NOTE 一定要确保和portaldb服务的命名空间一致
 			instance.Spec.PortalDB.Service.Port,
+			instance.Spec.PortalDB.DBName,
 			instance.Spec.PortalDB.ConnectionStringProperties),
 	}
 	if instance.Spec.Config.Envs != "" {
-		apolloGithubConfig = append(apolloGithubConfig, instance.Spec.Config.Envs)
+		apolloGithubConfig = append(apolloGithubConfig, fmt.Sprintf("apollo.portal.envs = %s", instance.Spec.Config.Envs))
+	}
+	if instance.Spec.Config.ContextPath != "" {
+		apolloGithubConfig = append(apolloGithubConfig, fmt.Sprintf("server.servlet.context-path = %s", instance.Spec.Config.ContextPath))
 	}
 	// TODO config.contextPath
 
-	data["apollo-github.properties"] = strings.Join(apolloGithubConfig, "\n")
+	data["application-github.properties"] = strings.Join(apolloGithubConfig, "\n")
 
 	// 其余配置文件
 	for fileName, content := range instance.Spec.Config.File {

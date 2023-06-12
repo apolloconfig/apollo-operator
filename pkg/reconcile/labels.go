@@ -1,6 +1,7 @@
 package reconcile
 
 import (
+	"apollo.io/apollo-operator/pkg/utils"
 	"apollo.io/apollo-operator/pkg/utils/naming"
 	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -39,7 +40,7 @@ func Labels(instance client.Object, name string, filterLabels []string) map[stri
 	return base
 }
 
-// SelectorLabels return the common labels to all objects that are part of a managed OpenTelemetryCollector to use as selector.
+// SelectorLabels return the common labels to all objects that are part of a managed Apollo Operator to use as selector.
 // Selector labels are immutable for Deployment, StatefulSet and DaemonSet, therefore, no labels in selector should be
 // expected to be modified for the lifetime of the object.
 func SelectorLabels(instance client.Object) map[string]string {
@@ -50,4 +51,9 @@ func SelectorLabels(instance client.Object) map[string]string {
 		"app.kubernetes.io/part-of":    "apollo-operator",
 		"app.kubernetes.io/component":  strings.ToLower(instance.GetObjectKind().GroupVersionKind().Kind), // eg. apolloportal
 	}
+}
+
+func SelectorLabelsWithCustom(instance client.Object, custom map[string]string) map[string]string {
+	commonLabels := SelectorLabels(instance)
+	return utils.MergeTwoMap(commonLabels, custom)
 }

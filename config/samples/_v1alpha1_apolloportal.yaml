@@ -5,21 +5,52 @@ metadata:
 spec:
   # TODO(user): Add fields here
   image: apolloconfig/apollo-portal:2.1.0
+  imagePullPolicy: IfNotPresent
+  #imagePullSecrets:
+  replicas: 2
+  containerPort: 8070
+  #strategy:
+  #env:
+  service:
+    port: 8070
+    targetPort: 8070
+    type: ClusterIP
+    sessionAffinity: ClientIP
   config:
     envs: dev
     metaServers:
-      dev: testDEVaaaaaaa
+      dev: http://apollo-service-dev-apollo-configservice.apollo-helm:8080
+    profiles: "github,auth" #TODO 修改到环境变量那里
+    contextPath: ""
     file:
       file1: test1
       file2: test2
   portaldb:
     username: root
     password: mysqlpw
-    host: 127.0.0.1
-    port: 3306
-    dbName: ApolloPortal
-    connectionStringProperties: testPropertiesaaaaaaaaa
+    host: 172.29.32.180
+    port: 49154
+    dbName: ApolloPortalDB
+    connectionStringProperties: characterEncoding=utf8
     service:
-      name: testServiceName
+      name: testServicePortalDB
       port: 3306
-      type: clusterIP
+      type: ClusterIP
+#  resources:
+#    requests:
+#      memory: "64Mi"
+#      cpu: "250m"
+#    limits:
+#      memory: "128Mi"
+#      cpu: "500m"
+  probe:
+    # 这里是k8s中探针的格式
+    livenessProbe:
+      initialDelaySeconds: 100
+      periodSeconds: 10
+    readinessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 5
+  #nodeSelector:
+  #affinity:
+  #tolerations:

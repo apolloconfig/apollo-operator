@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -31,23 +32,47 @@ type ApolloPortalSpec struct {
 
 	Image string `json:"image,omitempty"`
 
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+
+	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+
+	Replicas int32 `json:"replicas,omitempty"`
+
+	ContainerPort int32 `json:"containerPort,omitempty"`
+
+	Strategy appv1.DeploymentStrategy `json:"strategy,omitempty"`
+
+	Env []corev1.EnvVar `json:"env,omitempty"`
+
 	Service Service `json:"service,omitempty"`
 
 	Config Config `json:"config,omitempty"`
 
 	PortalDB PortalDB `json:"portaldb,omitempty"`
+
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	Probe Probe `json:"probe,omitempty"`
+
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	Affinity corev1.Affinity `json:"affinity,omitempty"`
+
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 type Service struct {
-	Port            int32                  `json:"port"`
-	TargetPort      int32                  `json:"targetPort"`
-	Type            corev1.ServiceType     `json:"type"`
-	SessionAffinity corev1.ServiceAffinity `json:"sessionAffinity"`
+	Port            int32                  `json:"port,omitempty"`
+	TargetPort      int32                  `json:"targetPort,omitempty"`
+	Type            corev1.ServiceType     `json:"type,omitempty"`
+	SessionAffinity corev1.ServiceAffinity `json:"sessionAffinity,omitempty"`
 }
 
 type Config struct {
 	Envs        string            `json:"envs,omitempty"`
 	MetaServers map[string]string `json:"metaServers,omitempty"`
+	Profiles    string            `json:"profiles,omitempty"`
+	ContextPath string            `json:"contextPath,omitempty"`
 	File        map[string]string `json:"file,omitempty"`
 }
 
@@ -65,6 +90,11 @@ type PortalDBService struct {
 	Name string             `json:"name,omitempty"`
 	Port int32              `json:"port,omitempty"`
 	Type corev1.ServiceType `json:"type,omitempty"`
+}
+
+type Probe struct {
+	Liveness   corev1.Probe `json:"livenessProbe,omitempty"`
+	Readineeds corev1.Probe `json:"readinessProbe,omitempty"`
 }
 
 // ApolloPortalStatus defines the observed state of ApolloPortal

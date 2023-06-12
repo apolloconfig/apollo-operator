@@ -34,10 +34,10 @@ func DNSName(name string) string {
 
 var regexpEndReplace, regexpBeginReplace *regexp.Regexp
 
-//func init() {
-//	regexpEndReplace, _ = regexp.Compile("[^A-Za-z0-9]+$")
-//	regexpBeginReplace, _ = regexp.Compile("^[^A-Za-z0-9]+")
-//}
+func init() {
+	regexpEndReplace, _ = regexp.Compile("[^A-Za-z0-9]+$")
+	regexpBeginReplace, _ = regexp.Compile("^[^A-Za-z0-9]+")
+}
 
 // Truncate will shorten the length of the instance name so that it contains at most max chars when combined with the fixed part
 // If the fixed part is already bigger than the max, this function is noop.
@@ -80,5 +80,6 @@ func Truncate(format string, max int, values ...interface{}) string {
 // source: https://github.com/jaegertracing/jaeger-operator/blob/91e3b69ee5c8761bbda9d3cf431400a73fc1112a/pkg/util/truncate.go#L53
 func trimNonAlphaNumeric(text string) string {
 	newText := regexpEndReplace.ReplaceAllString(text, "")
-	return regexpBeginReplace.ReplaceAllString(newText, "")
+	res := regexpBeginReplace.ReplaceAllString(newText, "")
+	return res
 }

@@ -30,6 +30,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sync"
+	"time"
 )
 
 // ApolloPortalReconciler reconciles a ApolloPortal object
@@ -138,8 +139,8 @@ func NewApolloPortalReconciler(p Params) *ApolloPortalReconciler {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *ApolloPortalReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.log.WithValues("ApolloPortal", req.NamespacedName)
+	log.Info("进入ApolloPortalReconciler Reconcile", "ApolloPortal", "刚进入")
 
-	// TODO(user): your logic here
 	var instance apolloiov1alpha1.ApolloPortal
 	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {
 		if !k8serrors.IsNotFound(err) {
@@ -160,12 +161,14 @@ func (r *ApolloPortalReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		Scheme:   r.scheme,
 		Recorder: r.recorder,
 	}
+	// TODO 为 instance 增加默认值
 
 	if err := r.RunTasks(ctx, params); err != nil {
-		return ctrl.Result{}, err
+		//return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: time.Second * 3}, nil
 }
 
 // RunTasks runs all the tasks associated with this reconciler.

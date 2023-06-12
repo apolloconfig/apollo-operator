@@ -2,6 +2,7 @@ package apolloportal
 
 import (
 	"apollo.io/apollo-operator/pkg/reconcile"
+	"apollo.io/apollo-operator/pkg/utils"
 	"apollo.io/apollo-operator/pkg/utils/naming"
 	"context"
 	"fmt"
@@ -48,7 +49,7 @@ func Services(ctx context.Context, params Params) error {
 }
 
 func portaldbService(ctx context.Context, params Params) *corev1.Service {
-	name := naming.ResourceNameWithSuffix(&params.Instance, "portaldb")
+	name := naming.PortalDBService(&params.Instance)
 	labels := reconcile.Labels(&params.Instance, name, []string{})
 
 	portaldbService := &corev1.Service{
@@ -141,6 +142,7 @@ func expectedServices(ctx context.Context, params Params, expected []corev1.Serv
 
 		// it exists already, merge the two if the end result isn't identical to the existing one
 		updated := existing.DeepCopy()
+		utils.InitObjectMeta(updated)
 		//if updated.Annotations == nil {
 		//	updated.Annotations = map[string]string{}
 		//}

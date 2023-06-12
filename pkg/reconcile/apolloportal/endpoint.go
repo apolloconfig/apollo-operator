@@ -3,6 +3,7 @@ package apolloportal
 import (
 	apolloiov1alpha1 "apollo.io/apollo-operator/api/v1alpha1"
 	"apollo.io/apollo-operator/pkg/reconcile"
+	"apollo.io/apollo-operator/pkg/utils"
 	"apollo.io/apollo-operator/pkg/utils/naming"
 	"context"
 	"fmt"
@@ -38,17 +39,14 @@ func Endpoints(ctx context.Context, params Params) error {
 }
 
 func desiredEndpoints(ctx context.Context, params Params) corev1.Endpoints {
-	name := naming.Endpoints(&params.Instance)
-	labels := reconcile.Labels(&params.Instance, name, []string{})
-
 	// TODO 目前需求只有一个subset，后续可以拓展为多个
 	subset, _ := buildSubset(ctx, params.Instance)
 
 	return corev1.Endpoints{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      naming.PortalDBService(&params.Instance), // NOTE endpoints 名字要和链接的service的服务名相同
 			Namespace: params.Instance.Namespace,
-			Labels:    labels,
+			Labels:    reconcile.SelectorLabels(&params.Instance),
 		},
 		Subsets: []corev1.EndpointSubset{subset},
 	}
@@ -90,6 +88,7 @@ func expectedEndpoints(ctx context.Context, params Params, expected []corev1.End
 
 		// it exists already, merge the two if the end result isn't identical to the existing one
 		updated := existing.DeepCopy()
+		utils.InitObjectMeta(updated)
 		// TODO 删除该日志
 		params.Log.V(2).Info("查看existing和updated", "existing endpoints：", existing, "updated endpoints：", updated)
 
@@ -165,7 +164,7 @@ func buildSubset(_ context.Context, instance apolloiov1alpha1.ApolloPortal) (cor
 		},
 		Ports: []corev1.EndpointPort{
 			{
-				Port:     instance.Spec.PortalDB.Port, // TODO 暂时
+				Port:     instance.Spec.PortalDB.Port,
 				Protocol: corev1.ProtocolTCP,
 			},
 		},
@@ -177,14 +176,14 @@ func EndpointsChanged(desired *corev1.Endpoints, existing *corev1.Endpoints) boo
 	for i, subset := range existing.Subsets {
 		for j, address := range subset.Addresses {
 			if address.IP != desSubsets[i].Addresses[j].IP {
-				return false
+				return true
 			}
 		}
 		for j, port := range subset.Ports {
 			if port.Port != desSubsets[i].Ports[j].Port {
-				return false
+				return true
 			}
 		}
 	}
-	return true
+	return false
 }
