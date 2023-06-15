@@ -73,7 +73,7 @@ type Config struct {
 	MetaServers map[string]string `json:"metaServers,omitempty"`
 	Profiles    string            `json:"profiles,omitempty"`
 	ContextPath string            `json:"contextPath,omitempty"`
-	File        map[string]string `json:"file,omitempty"`
+	Files       []File            `json:"file,omitempty"`
 }
 
 type PortalDB struct {
@@ -90,6 +90,11 @@ type PortalDBService struct {
 	Name string             `json:"name,omitempty"`
 	Port int32              `json:"port,omitempty"`
 	Type corev1.ServiceType `json:"type,omitempty"`
+}
+
+type File struct {
+	Name    string `json:"name,omitempty"`
+	Content string `json:"content,omitempty"`
 }
 
 type Probe struct {

@@ -139,7 +139,7 @@ func NewApolloPortalReconciler(p Params) *ApolloPortalReconciler {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *ApolloPortalReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.log.WithValues("ApolloPortal", req.NamespacedName)
-	log.Info("进入ApolloPortalReconciler Reconcile", "ApolloPortal", "刚进入")
+	log.Info("进入ApolloPortalReconciler Reconcile")
 
 	var instance apolloiov1alpha1.ApolloPortal
 	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {

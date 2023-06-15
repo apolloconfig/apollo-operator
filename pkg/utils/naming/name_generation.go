@@ -25,6 +25,11 @@ func Apollo(obj client.Object) string {
 	return DNSName(Truncate("%s", 63, obj.GetName()))
 }
 
+// Container returns the name to use for the container in the pod.
+func Container() string {
+	return "apollo-container"
+}
+
 // HeadlessService builds the name for the headless service based on the instance.
 func HeadlessService(obj client.Object) string {
 	return DNSName(Truncate("%s-headless", 63, Service(obj)))

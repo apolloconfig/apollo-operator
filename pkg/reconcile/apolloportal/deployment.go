@@ -26,7 +26,6 @@ func Deployments(ctx context.Context, params Params) error {
 		desiredDeployment(ctx, params),
 	}
 
-	// first, handle the create/update parts
 	if err := expectedDeployments(ctx, params, desired); err != nil {
 		return fmt.Errorf("failed to reconcile the expected deployments: %w", err)
 	}
@@ -101,7 +100,7 @@ func expectedDeployments(ctx context.Context, params Params, expected []appv1.De
 		updated.SetLabels(desired.GetLabels())
 		updated.SetOwnerReferences(desired.GetOwnerReferences())
 
-		updated.Spec = desired.Spec
+		updated.Spec = desired.Spec // 一定要注意spec中的slice的来源，不能用遍历map的方式获取，否则会导致每次调谐重新创建pod
 
 		patch := client.MergeFrom(existing)
 		if err := params.Client.Patch(ctx, updated, patch); err != nil {
@@ -149,7 +148,6 @@ func deleteDeployments(ctx context.Context, params Params, expected []appv1.Depl
 }
 
 func buildContainer(ctx context.Context, instance apolloiov1alpha1.ApolloPortal) (corev1.Container, error) {
-	name := naming.Apollo(&instance)
 
 	if instance.Spec.Env == nil {
 		instance.Spec.Env = []corev1.EnvVar{}
@@ -168,18 +166,19 @@ func buildContainer(ctx context.Context, instance apolloiov1alpha1.ApolloPortal)
 			SubPath:   "apollo-env.properties",
 		},
 	}
-	for fileName := range instance.Spec.Config.File {
+	// TODO map无序，导致调谐前后不一致
+	for _, file := range instance.Spec.Config.Files {
 		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      naming.ConfigMap(&instance),
-			MountPath: "/apollo-portal/config/" + fileName,
-			SubPath:   fileName,
+			MountPath: "/apollo-portal/config/" + file.Name,
+			SubPath:   file.Name,
 		})
 	}
 
 	livenessProbe, readinessProbe, _ := buildProbe(ctx, instance)
 
 	container := corev1.Container{
-		Name:            name,
+		Name:            naming.Container(),
 		Image:           instance.Spec.Image,
 		ImagePullPolicy: instance.Spec.ImagePullPolicy,
 		Ports: []corev1.ContainerPort{
@@ -223,10 +222,10 @@ func buildVolume(ctx context.Context, instance apolloiov1alpha1.ApolloPortal) (c
 		},
 	}
 
-	for fileName := range instance.Spec.Config.File {
+	for _, file := range instance.Spec.Config.Files {
 		volume.VolumeSource.ConfigMap.Items = append(volume.VolumeSource.ConfigMap.Items, corev1.KeyToPath{
-			Key:  fileName,
-			Path: fileName,
+			Key:  file.Name,
+			Path: file.Name,
 		})
 	}
 	return volume, nil
@@ -264,4 +263,63 @@ func buildProbe(ctx context.Context, instance apolloiov1alpha1.ApolloPortal) (li
 		},
 	}
 	return livenessProbe, readinessProbe, nil
+}
+
+// TODO 删除
+func UpdateDeploymentSpec(ctx context.Context, instance apolloiov1alpha1.ApolloPortal, updated, desired *appv1.Deployment) {
+
+	updated.Spec.Replicas = desired.Spec.Replicas
+	updated.Spec.Strategy = desired.Spec.Strategy
+
+	// pod spec template
+
+	updated.Spec.Template.Labels = desired.Spec.Template.Labels
+
+	updated.Spec.Template.Spec.NodeSelector = desired.Spec.Template.Spec.NodeSelector
+	updated.Spec.Template.Spec.Affinity = desired.Spec.Template.Spec.Affinity
+	updated.Spec.Template.Spec.Tolerations = desired.Spec.Template.Spec.Tolerations
+	updated.Spec.Template.Spec.ImagePullSecrets = desired.Spec.Template.Spec.ImagePullSecrets
+
+	for i, container := range updated.Spec.Template.Spec.Containers {
+		if !apiequality.Semantic.DeepEqual(container, desired.Spec.Template.Spec.Containers[i]) {
+			// updated.Spec.Template.Spec.Containers[i] = desired.Spec.Template.Spec.Containers[i]
+			if !apiequality.Semantic.DeepEqual(container.Ports, desired.Spec.Template.Spec.Containers[i].Ports) {
+				updated.Spec.Template.Spec.Containers[i].Ports = desired.Spec.Template.Spec.Containers[i].Ports
+			}
+			if !apiequality.Semantic.DeepEqual(container.Env, desired.Spec.Template.Spec.Containers[i].Env) {
+				updated.Spec.Template.Spec.Containers[i].Env = desired.Spec.Template.Spec.Containers[i].Env
+			}
+			if !apiequality.Semantic.DeepEqual(container.Image, desired.Spec.Template.Spec.Containers[i].Image) {
+				updated.Spec.Template.Spec.Containers[i].Image = desired.Spec.Template.Spec.Containers[i].Image
+			}
+			if !apiequality.Semantic.DeepEqual(container.ImagePullPolicy, desired.Spec.Template.Spec.Containers[i].ImagePullPolicy) {
+				updated.Spec.Template.Spec.Containers[i].ImagePullPolicy = desired.Spec.Template.Spec.Containers[i].ImagePullPolicy
+			}
+			// updated.Spec.Template.Spec.Containers[i].VolumeMounts
+			for j, volumeMount := range updated.Spec.Template.Spec.Containers[i].VolumeMounts {
+				if volumeMount.Name != desired.Spec.Template.Spec.Containers[i].VolumeMounts[j].Name {
+					fmt.Println("volumeMount Name 不同", volumeMount.Name, ":::::", desired.Spec.Template.Spec.Containers[i].VolumeMounts[j].Name)
+					updated.Spec.Template.Spec.Containers[i].VolumeMounts[j].Name = desired.Spec.Template.Spec.Containers[i].VolumeMounts[j].Name
+				}
+				if volumeMount.MountPath != desired.Spec.Template.Spec.Containers[i].VolumeMounts[j].MountPath {
+					updated.Spec.Template.Spec.Containers[i].VolumeMounts[j].MountPath = desired.Spec.Template.Spec.Containers[i].VolumeMounts[j].MountPath
+					fmt.Println("volumeMount MountPath 不同", volumeMount.MountPath, ":::::", desired.Spec.Template.Spec.Containers[i].VolumeMounts[j].MountPath)
+				}
+				if volumeMount.SubPath != desired.Spec.Template.Spec.Containers[i].VolumeMounts[j].SubPath {
+					updated.Spec.Template.Spec.Containers[i].VolumeMounts[j].SubPath = desired.Spec.Template.Spec.Containers[i].VolumeMounts[j].SubPath
+					fmt.Println("volumeMount SubPath 不同", volumeMount.SubPath, ":::::", desired.Spec.Template.Spec.Containers[i].VolumeMounts[j].SubPath)
+				}
+			}
+
+			//if !apiequality.Semantic.DeepEqual(container.VolumeMounts, desired.Spec.Template.Spec.Containers[i].VolumeMounts) {
+			//	updated.Spec.Template.Spec.Containers[i].VolumeMounts = desired.Spec.Template.Spec.Containers[i].VolumeMounts
+			//}
+			updated.Spec.Template.Spec.Containers[i].LivenessProbe = desired.Spec.Template.Spec.Containers[i].LivenessProbe
+			updated.Spec.Template.Spec.Containers[i].ReadinessProbe = desired.Spec.Template.Spec.Containers[i].ReadinessProbe
+			updated.Spec.Template.Spec.Containers[i].Resources = desired.Spec.Template.Spec.Containers[i].Resources
+
+		}
+	}
+	//updated.Spec.Template.Spec.Volumes = desired.Spec.Template.Spec.Volumes
+
 }

@@ -190,8 +190,8 @@ func buildConfig(_ context.Context, instance apolloiov1alpha1.ApolloPortal) (map
 	data["application-github.properties"] = strings.Join(apolloGithubConfig, "\n")
 
 	// 其余配置文件
-	for fileName, content := range instance.Spec.Config.File {
-		data[fileName] = content
+	for _, file := range instance.Spec.Config.Files {
+		data[file.Name] = file.Content
 	}
 
 	return data, nil

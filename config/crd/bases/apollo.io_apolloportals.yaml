@@ -870,9 +870,14 @@ spec:
                   envs:
                     type: string
                   file:
-                    additionalProperties:
-                      type: string
-                    type: object
+                    items:
+                      properties:
+                        content:
+                          type: string
+                        name:
+                          type: string
+                      type: object
+                    type: array
                   metaServers:
                     additionalProperties:
                       type: string
