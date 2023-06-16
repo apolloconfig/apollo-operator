@@ -1,7 +1,6 @@
-package apolloportal
+package models
 
 import (
-	"apollo.io/apollo-operator/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -14,6 +13,4 @@ type Params struct {
 	Recorder record.EventRecorder
 	Scheme   *runtime.Scheme
 	Log      logr.Logger
-	Instance v1alpha1.ApolloPortal
-	//Config   config.Config
 }

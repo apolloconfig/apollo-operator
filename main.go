@@ -90,14 +90,16 @@ func main() {
 	}
 
 	// clientset, _ := kubernetes.NewForConfig(ctrl.GetConfigOrDie())
-	if err = (&controllers.ApolloEnvironmentReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+	if err = controllers.NewApolloEnvironmentReconciler(controllers.ReconcilerParams{
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("ApolloEnvironment"),
+		Scheme:   mgr.GetScheme(),
+		Recorder: nil,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApolloEnvironment")
 		os.Exit(1)
 	}
-	if err = controllers.NewApolloPortalReconciler(controllers.Params{
+	if err = controllers.NewApolloPortalReconciler(controllers.ReconcilerParams{
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("ApolloPortal"),
 		Scheme:   mgr.GetScheme(),

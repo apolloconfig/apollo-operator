@@ -18,20 +18,79 @@ package controllers
 
 import (
 	apolloiov1alpha1 "apollo.io/apollo-operator/api/v1alpha1"
+	"apollo.io/apollo-operator/pkg/reconcile"
 	"context"
 	"errors"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sync"
 )
 
 // ApolloEnvironmentReconciler reconciles a ApolloEnvironment object
 type ApolloEnvironmentReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
-	//K8sClient *k8sClient.K8sClient
+	recorder record.EventRecorder
+	scheme   *runtime.Scheme
+	log      logr.Logger
+	//config   config.Config
+
+	tasks   []Task
+	muTasks sync.RWMutex
+}
+
+// NewApolloPortalReconciler creates a new reconciler for ApolloPortal objects.
+func NewApolloEnvironmentReconciler(p ReconcilerParams) *ApolloEnvironmentReconciler {
+	r := &ApolloEnvironmentReconciler{
+		Client:   p.Client,
+		log:      p.Log,
+		scheme:   p.Scheme,
+		tasks:    p.Tasks,
+		recorder: p.Recorder,
+	}
+	if len(r.tasks) == 0 {
+		r.tasks = []Task{
+			{
+				reconcile.ConfigMaps,
+				"configmaps",
+				true,
+			},
+			{
+				reconcile.ServiceAccounts,
+				"serviceaccounts",
+				true,
+			},
+			{
+				reconcile.Endpoints,
+				"endpoints",
+				true,
+			},
+			{
+				reconcile.Services,
+				"services",
+				true,
+			},
+			{
+				reconcile.Deployments,
+				"deployments",
+				true,
+			},
+			{
+				reconcile.Ingresses,
+				"ingresses",
+				true,
+			},
+			{
+				reconcile.Self,
+				"apolloenvironment",
+				true,
+			},
+		}
+	}
+	return r
 }
 
 //+kubebuilder:rbac:groups=apollo.io,resources=apolloenvironments,verbs=get;list;watch;create;update;patch;delete
@@ -55,74 +114,11 @@ func (r *ApolloEnvironmentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	apolloEnvironmentInstance := &apolloiov1alpha1.ApolloEnvironment{}
 	err := r.Client.Get(ctx, req.NamespacedName, apolloEnvironmentInstance)
 	if err != nil {
-		return reconcile.Result{}, errors.New(err.Error() + "get ApolloEnvironment error")
+		return ctrl.Result{}, errors.New(err.Error() + "get ApolloEnvironment error")
 	}
-	// 具体逻辑
-	//ok := r.ReconcileWork(ctx, apolloEnvironmentInstance)
-	//if !ok {
-	//	return reconcile.Result{RequeueAfter: time.Second * 5}, nil
-	//} else {
-	//	return reconcile.Result{}, nil
-	//}
+	// TODO 具体逻辑
 	return ctrl.Result{}, nil
 }
-
-//func (r *ApolloEnvironmentReconciler) ReconcileWork(ctx context.Context, instance *apolloiov1alpha1.ApolloEnvironment) bool {
-//	logger := log.FromContext(ctx)
-//	logger.Info("进入ReconcileWork", "ApolloEnvironment", instance.Name)
-//
-//	deployment := &appv1.Deployment{
-//		ObjectMeta: metav1.ObjectMeta{
-//			Name: "nginx",
-//			Labels: map[string]string{
-//				"app": "nginx",
-//				"env": "dev",
-//			},
-//		},
-//		Spec: appv1.DeploymentSpec{
-//			Replicas: &instance.Spec.AdminServiceCount,
-//			Selector: &metav1.LabelSelector{
-//				MatchLabels: map[string]string{
-//					"app": "nginx",
-//					"env": "dev",
-//				},
-//			},
-//			Template: corev1.PodTemplateSpec{
-//				ObjectMeta: metav1.ObjectMeta{
-//					Name: "nginx",
-//					Labels: map[string]string{
-//						"app": "nginx",
-//						"env": "dev",
-//					},
-//				},
-//				Spec: corev1.PodSpec{
-//					Containers: []corev1.Container{
-//						{
-//							Name:  "nginx",
-//							Image: "nginx:1.16.1",
-//							Ports: []corev1.ContainerPort{
-//								{
-//									Name:          "http",
-//									Protocol:      corev1.ProtocolTCP,
-//									ContainerPort: 80,
-//								},
-//							},
-//						},
-//					},
-//				},
-//			},
-//		},
-//	}
-//
-//	deploymentList, err := r.K8sClient.KubeClient.AppsV1().Deployments(instance.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
-//	fmt.Println(err, deploymentList)
-//	if err != nil {
-//		logger.Info("Deployments创建失败", "ApolloEnvironment", instance.Name)
-//		return false
-//	}
-//	logger.Info("Deployments创建成功", "ApolloEnvironment", instance.Name)
-//	return true
-//}
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ApolloEnvironmentReconciler) SetupWithManager(mgr ctrl.Manager) error {

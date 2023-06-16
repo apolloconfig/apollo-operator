@@ -30,7 +30,7 @@ spec:
   portaldb:
     username: root
     password: mysqlpw
-    host: 172.29.34.170
+    host: 172.29.43.179
     port: 49153
     dbName: ApolloPortalDB
     connectionStringProperties: characterEncoding=utf8

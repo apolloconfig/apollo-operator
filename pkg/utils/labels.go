@@ -1,7 +1,6 @@
-package reconcile
+package utils
 
 import (
-	"apollo.io/apollo-operator/pkg/utils"
 	"apollo.io/apollo-operator/pkg/utils/naming"
 	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -55,5 +54,5 @@ func SelectorLabels(instance client.Object) map[string]string {
 
 func SelectorLabelsWithCustom(instance client.Object, custom map[string]string) map[string]string {
 	commonLabels := SelectorLabels(instance)
-	return utils.MergeTwoMap(commonLabels, custom)
+	return MergeTwoMap(commonLabels, custom)
 }

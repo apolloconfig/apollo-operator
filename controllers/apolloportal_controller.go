@@ -18,7 +18,8 @@ package controllers
 
 import (
 	apolloiov1alpha1 "apollo.io/apollo-operator/api/v1alpha1"
-	"apollo.io/apollo-operator/pkg/reconcile/apolloportal"
+	"apollo.io/apollo-operator/pkg/reconcile"
+	"apollo.io/apollo-operator/pkg/reconcile/models"
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
@@ -45,25 +46,8 @@ type ApolloPortalReconciler struct {
 	muTasks sync.RWMutex
 }
 
-// Task represents a reconciliation task to be executed by the reconciler.
-type Task struct {
-	Do          func(context.Context, apolloportal.Params) error
-	Name        string
-	BailOnError bool
-}
-
-// Params is the set of options to build a new ApolloPortalReconciler.
-type Params struct { // 感觉可以改个名字，不叫 Params
-	client.Client
-	Recorder record.EventRecorder
-	Scheme   *runtime.Scheme
-	Log      logr.Logger
-	Tasks    []Task
-	//Config   config.Config
-}
-
 // NewApolloPortalReconciler creates a new reconciler for ApolloPortal objects.
-func NewApolloPortalReconciler(p Params) *ApolloPortalReconciler {
+func NewApolloPortalReconciler(p ReconcilerParams) *ApolloPortalReconciler {
 	r := &ApolloPortalReconciler{
 		Client: p.Client,
 		log:    p.Log,
@@ -75,48 +59,38 @@ func NewApolloPortalReconciler(p Params) *ApolloPortalReconciler {
 	if len(r.tasks) == 0 {
 		r.tasks = []Task{
 			{
-				apolloportal.ConfigMaps,
+				reconcile.ConfigMaps,
 				"configmaps",
 				true,
 			},
 			{
-				apolloportal.ServiceAccounts,
+				reconcile.ServiceAccounts,
 				"serviceaccounts",
 				true,
 			},
 			{
-				apolloportal.Endpoints,
+				reconcile.Endpoints,
 				"endpoints",
 				true,
 			},
 			{
-				apolloportal.Services,
+				reconcile.Services,
 				"services",
 				true,
 			},
 			{
-				apolloportal.Deployments,
+				reconcile.Deployments,
 				"deployments",
 				true,
 			},
-			//{
-			//	apolloportal.HorizontalPodAutoscalers,
-			//	"horizontal pod autoscalers",
-			//	true,
-			//},
-			//{
-			//	apolloportal.DaemonSets,
-			//	"daemon sets",
-			//	true,
-			//},
 			{
-				apolloportal.Ingresses,
+				reconcile.Ingresses,
 				"ingresses",
 				true,
 			},
 			{
-				apolloportal.Self,
-				"opentelemetry",
+				reconcile.Self,
+				"apolloportal",
 				true,
 			},
 		}
@@ -144,7 +118,7 @@ func (r *ApolloPortalReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var instance apolloiov1alpha1.ApolloPortal
 	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {
 		if !k8serrors.IsNotFound(err) {
-			log.Error(err, "unable to fetch OpenTelemetryCollector")
+			log.Error(err, "unable to fetch ApolloPortal")
 		}
 
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
@@ -153,17 +127,16 @@ func (r *ApolloPortalReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	params := apolloportal.Params{
+	params := models.Params{
 		//Config:   r.config,
 		Client:   r.Client,
-		Instance: instance,
 		Log:      log,
 		Scheme:   r.scheme,
 		Recorder: r.recorder,
 	}
 	// TODO 为 instance 增加默认值
 
-	if err := r.RunTasks(ctx, params); err != nil {
+	if err := r.RunTasks(ctx, &instance, params); err != nil {
 		//return ctrl.Result{}, err
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
@@ -172,14 +145,14 @@ func (r *ApolloPortalReconciler) Reconcile(ctx context.Context, req ctrl.Request
 }
 
 // RunTasks runs all the tasks associated with this reconciler.
-func (r *ApolloPortalReconciler) RunTasks(ctx context.Context, params apolloportal.Params) error {
+func (r *ApolloPortalReconciler) RunTasks(ctx context.Context, instance client.Object, params models.Params) error {
 	r.muTasks.RLock()
 	defer r.muTasks.RUnlock()
 	for _, task := range r.tasks {
-		if err := task.Do(ctx, params); err != nil {
+		if err := task.Do(ctx, instance, params); err != nil {
 			// If we get an error that occurs because a pod is being terminated, then exit this loop
 			if k8serrors.IsForbidden(err) && k8serrors.HasStatusCause(err, corev1.NamespaceTerminatingCause) {
-				r.log.V(2).Info("Exiting reconcile loop because namespace is being terminated", "namespace", params.Instance.Namespace)
+				r.log.V(2).Info("Exiting reconcile loop because namespace is being terminated", "namespace", instance.GetNamespace())
 				return nil
 			}
 			r.log.Error(err, fmt.Sprintf("failed to reconcile %s", task.Name))
