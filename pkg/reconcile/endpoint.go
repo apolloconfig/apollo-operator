@@ -14,9 +14,14 @@ func Endpoints(ctx context.Context, instance client.Object, params models.Params
 
 	var obj ApolloObject
 
-	// TODO switch 修改一下
-	if instance.GetObjectKind().GroupVersionKind().Kind == "ApolloPortal" {
+	kind := instance.GetObjectKind().GroupVersionKind().Kind
+	switch kind {
+	case "ApolloPortal":
 		obj = ApolloPortal()
+	case "ApolloEnvironment":
+		obj = ApolloEnvironment()
+	case "Apollo":
+		obj = ApolloAllInOne()
 	}
 
 	desired := obj.DesiredEndpoints(ctx, instance, params)

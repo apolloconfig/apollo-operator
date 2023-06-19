@@ -1,6 +1,9 @@
 package reconcile
 
 import (
+	"apollo.io/apollo-operator/pkg/reconcile/apollo"
+	"apollo.io/apollo-operator/pkg/reconcile/apolloenvironment"
+	"apollo.io/apollo-operator/pkg/reconcile/apolloportal"
 	"apollo.io/apollo-operator/pkg/reconcile/models"
 	"context"
 	appsv1 "k8s.io/api/apps/v1"
@@ -28,4 +31,28 @@ type ApolloObject interface {
 	DesiredDeployments(ctx context.Context, instance client.Object, params models.Params) []appsv1.Deployment                  // 构建deployment对象
 	ExpectedDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error // 创建或更新deployment
 	DeleteDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error   // 删除deployment
+}
+
+var (
+	apolloPortal      ApolloObject
+	apolloEnvironment ApolloObject
+	apolloAllInOne    ApolloObject
+)
+
+func init() {
+	apolloPortal = apolloportal.NewApolloPortal()
+	apolloEnvironment = apolloenvironment.NewApolloEnvironment()
+	apolloAllInOne = apollo.NewApolloAllInOne()
+}
+
+func ApolloPortal() ApolloObject {
+	return apolloPortal
+}
+
+func ApolloEnvironment() ApolloObject {
+	return apolloEnvironment
+}
+
+func ApolloAllInOne() ApolloObject {
+	return apolloAllInOne
 }

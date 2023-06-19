@@ -1384,7 +1384,7 @@ spec:
                     format: int32
                     type: integer
                   sessionAffinity:
-                    description: Session Affinity Type string
+                    description: TODO 后续看是否必要，不必则删除
                     type: string
                   targetPort:
                     format: int32

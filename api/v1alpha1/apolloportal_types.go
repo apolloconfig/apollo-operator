@@ -46,7 +46,7 @@ type ApolloPortalSpec struct {
 
 	Service Service `json:"service,omitempty"`
 
-	Config Config `json:"config,omitempty"`
+	Config PortalConfig `json:"config,omitempty"`
 
 	PortalDB PortalDB `json:"portaldb,omitempty"`
 
@@ -62,13 +62,14 @@ type ApolloPortalSpec struct {
 }
 
 type Service struct {
-	Port            int32                  `json:"port,omitempty"`
-	TargetPort      int32                  `json:"targetPort,omitempty"`
-	Type            corev1.ServiceType     `json:"type,omitempty"`
+	Port       int32              `json:"port,omitempty"`
+	TargetPort int32              `json:"targetPort,omitempty"`
+	Type       corev1.ServiceType `json:"type,omitempty"`
+	// TODO 后续看是否必要，不必则删除
 	SessionAffinity corev1.ServiceAffinity `json:"sessionAffinity,omitempty"`
 }
 
-type Config struct {
+type PortalConfig struct {
 	Envs        string            `json:"envs,omitempty"`
 	MetaServers map[string]string `json:"metaServers,omitempty"`
 	Profiles    string            `json:"profiles,omitempty"`

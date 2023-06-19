@@ -67,7 +67,6 @@ func buildConfig(_ context.Context, obj client.Object) (map[string]string, error
 	if instance.Spec.Config.ContextPath != "" {
 		apolloGithubConfig = append(apolloGithubConfig, fmt.Sprintf("server.servlet.context-path = %s", instance.Spec.Config.ContextPath))
 	}
-	// TODO config.contextPath
 
 	data["application-github.properties"] = strings.Join(apolloGithubConfig, "\n")
 
@@ -159,7 +158,7 @@ func portaldbService(ctx context.Context, obj client.Object, params models.Param
 
 func portalService(ctx context.Context, obj client.Object, params models.Params) *corev1.Service {
 	instance := obj.(*apolloiov1alpha1.ApolloPortal)
-	name := naming.ResourceNameWithSuffix(instance, "portal")
+	name := naming.PortalService(instance)
 	labels := utils.Labels(instance, name, []string{})
 
 	portalService := &corev1.Service{
@@ -201,7 +200,7 @@ func headlessService(ctx context.Context, instance client.Object, params models.
 
 // 构建deployment对象
 func (o Apolloportal) DesiredDeployments(ctx context.Context, instance client.Object, params models.Params) []appsv1.Deployment {
-	name := naming.Apollo(instance)
+	name := naming.PortalDeployment(instance)
 	labels := utils.Labels(instance, name, []string{})
 
 	spec, _ := buildDepolymentSpec(ctx, instance)
@@ -236,7 +235,7 @@ func buildContainer(ctx context.Context, instance *apolloiov1alpha1.ApolloPortal
 			SubPath:   "apollo-env.properties",
 		},
 	}
-	// TODO map无序，导致调谐前后不一致
+
 	for _, file := range instance.Spec.Config.Files {
 		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      naming.ConfigMap(instance),
@@ -331,6 +330,8 @@ func buildDepolymentSpec(ctx context.Context, obj client.Object) (appsv1.Deploym
 func buildProbe(ctx context.Context, instance *apolloiov1alpha1.ApolloPortal) (livenessProbe, readinessProbe *corev1.Probe, err error) {
 	livenessProbe = &instance.Spec.Probe.Liveness
 	readinessProbe = &instance.Spec.Probe.Readineeds
+
+	// TODO 删除 ProbeHandler，因为已完全开放probe的字段
 	livenessProbe.ProbeHandler = corev1.ProbeHandler{
 		TCPSocket: &corev1.TCPSocketAction{
 			Port: intstr.IntOrString{Type: intstr.Int, IntVal: instance.Spec.ContainerPort},

@@ -7,7 +7,7 @@ spec:
   image: apolloconfig/apollo-portal:2.1.0
   imagePullPolicy: IfNotPresent
   #imagePullSecrets:
-  replicas: 3
+  replicas: 2
   containerPort: 8070
   #strategy:
   #env:
@@ -19,8 +19,8 @@ spec:
   config:
     envs: dev
     metaServers:
-      dev: http://apollo-service-dev-apollo-configservice.apollo-helm:8080
-    profiles: "github,auth" #TO DO 修改到环境变量那里
+      dev: http://apolloenvironment-sample-config.apollo3:8080
+    profiles: "github,auth" #TODO 修改到环境变量那里
     contextPath: ""
     file:
     - name: file1
@@ -30,12 +30,12 @@ spec:
   portaldb:
     username: root
     password: mysqlpw
-    host: 172.29.43.179
+    host: 172.29.56.8
     port: 49153
     dbName: ApolloPortalDB
     connectionStringProperties: characterEncoding=utf8
     service:
-      name: testServicePortalDB
+      name: testServicePortalDB #没用到
       port: 3306
       type: ClusterIP
 #  resources:

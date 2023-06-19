@@ -2,15 +2,83 @@ apiVersion: apollo.io/v1alpha1
 kind: ApolloEnvironment
 metadata:
   name: apolloenvironment-sample
-  labels:
-    app: apollo
 spec:
-  # TODO(user): Add fields here
-  foo: test
-  imageConfigService: apolloconfig/apollo-configservice:latest
-  #imageConfigService: nginx:latest
-  imageAdminService: apolloconfig/apollo-adminservice:latest
-  #imageAdminService: nginx:latest
-  configServiceCount: 2
-  adminServiceCount: 2
-  mysqlEmbedded: true
+  configdb:
+    username: root
+    password: mysqlpw
+    host: 172.29.56.8
+    port: 49153
+    dbName: ApolloConfigDB
+    connectionStringProperties: characterEncoding=utf8
+    service:
+      name: testServiceConfigDB #没用到
+      port: 3306
+      type: ClusterIP
+  configService:
+    image: apolloconfig/apollo-configservice:2.1.0
+    imagePullPolicy: IfNotPresent
+    #imagePullSecrets:
+    replicas: 3
+    containerPort: 8080
+    #strategy:
+    #env:
+    service:
+      port: 8080
+      targetPort: 8080
+      type: ClusterIP
+      #sessionAffinity: ClientIP
+    config:
+      profiles: "github,kubernetes" #TODO 修改到环境变量那里
+      contextPath: ""
+#    resources:
+#      requests:
+#        memory: "64Mi"
+#        cpu: "250m"
+#      limits:
+#        memory: "128Mi"
+#        cpu: "500m"
+    probe:
+      # 这里是k8s中探针的格式
+      livenessProbe:
+        initialDelaySeconds: 100
+        periodSeconds: 10
+      readinessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 5
+    #nodeSelector:
+    #affinity:
+    #tolerations:
+  adminService:
+    image: apolloconfig/apollo-adminservice:2.1.0
+    imagePullPolicy: IfNotPresent
+    #imagePullSecrets:
+    replicas: 2
+    containerPort: 8090
+    #strategy:
+    #env:
+    service:
+      port: 8090
+      targetPort: 8090
+      type: ClusterIP
+      #sessionAffinity: ClientIP
+    config:
+      profiles: "github,kubernetes" #TODO 修改到环境变量那里
+      contextPath: ""
+    #    resources:
+    #      requests:
+    #        memory: "64Mi"
+    #        cpu: "250m"
+    #      limits:
+    #        memory: "128Mi"
+    #        cpu: "500m"
+    probe:
+      # 这里是k8s中探针的格式
+      livenessProbe:
+        initialDelaySeconds: 100
+        periodSeconds: 10
+      readinessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 5
+    #nodeSelector:
+    #affinity:
+    #tolerations:

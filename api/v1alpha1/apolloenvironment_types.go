@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	appv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,18 +30,97 @@ type ApolloEnvironmentSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of ApolloEnvironment. Edit apolloenvironment_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	ConfigDB ConfigDB `json:"configdb,omitempty"`
 
-	ImageConfigService string `json:"imageConfigService,omitempty"`
+	ConfigService ConfigService `json:"configService,omitempty"`
 
-	ImageAdminService string `json:"imageAdminService,omitempty"`
+	AdminService AdminService `json:"adminService,omitempty"`
+}
 
-	ConfigServiceCount int32 `json:"configServiceCount,omitempty"`
+type ConfigDB struct {
+	Username                   string          `json:"username,omitempty"`
+	Password                   string          `json:"password,omitempty"`
+	Host                       string          `json:"host,omitempty"`
+	Port                       int32           `json:"port,omitempty"`
+	DBName                     string          `json:"dbName,omitempty"`
+	ConnectionStringProperties string          `json:"connectionStringProperties,omitempty"`
+	Service                    ConfigDBService `json:"service,omitempty"`
+}
 
-	AdminServiceCount int32 `json:"adminServiceCount,omitempty"`
+type ConfigDBService struct {
+	Name string             `json:"name,omitempty"`
+	Port int32              `json:"port,omitempty"`
+	Type corev1.ServiceType `json:"type,omitempty"`
+}
 
-	MysqlEmbedded bool `json:"mysqlEmbedded,omitempty"`
+type ConfigService struct {
+	Image string `json:"image,omitempty"`
+
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+
+	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+
+	Replicas int32 `json:"replicas,omitempty"`
+
+	ContainerPort int32 `json:"containerPort,omitempty"`
+
+	Strategy appv1.DeploymentStrategy `json:"strategy,omitempty"`
+
+	Env []corev1.EnvVar `json:"env,omitempty"`
+
+	Service Service `json:"service,omitempty"`
+
+	Config ConfigServiceConfig `json:"config,omitempty"`
+
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	Probe Probe `json:"probe,omitempty"`
+
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	Affinity corev1.Affinity `json:"affinity,omitempty"`
+
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+}
+
+type ConfigServiceConfig struct {
+	Profiles    string `json:"profiles,omitempty"`
+	ContextPath string `json:"contextPath,omitempty"`
+}
+
+type AdminService struct {
+	Image string `json:"image,omitempty"`
+
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+
+	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+
+	Replicas int32 `json:"replicas,omitempty"`
+
+	ContainerPort int32 `json:"containerPort,omitempty"`
+
+	Strategy appv1.DeploymentStrategy `json:"strategy,omitempty"`
+
+	Env []corev1.EnvVar `json:"env,omitempty"`
+
+	Service Service `json:"service,omitempty"`
+
+	Config AdminServiceConfig `json:"config,omitempty"`
+
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	Probe Probe `json:"probe,omitempty"`
+
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	Affinity corev1.Affinity `json:"affinity,omitempty"`
+
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+}
+
+type AdminServiceConfig struct {
+	Profiles    string `json:"profiles,omitempty"`
+	ContextPath string `json:"contextPath,omitempty"`
 }
 
 // ApolloEnvironmentStatus defines the observed state of ApolloEnvironment
