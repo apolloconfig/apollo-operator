@@ -7,9 +7,11 @@ import (
 	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// DeleteConfigMaps 删除configmap
 func (o ApolloAllInOne) DeleteConfigMaps(ctx context.Context, instance client.Object, params models.Params, expected []corev1.ConfigMap) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -45,7 +47,7 @@ func (o ApolloAllInOne) DeleteConfigMaps(ctx context.Context, instance client.Ob
 	return nil
 }
 
-// 删除endpoints
+// DeleteEndpoints 删除endpoints
 func (o ApolloAllInOne) DeleteEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -81,7 +83,7 @@ func (o ApolloAllInOne) DeleteEndpoints(ctx context.Context, instance client.Obj
 	return nil
 }
 
-// 删除service
+// DeleteServices 删除service
 func (o ApolloAllInOne) DeleteServices(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Service) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -116,7 +118,7 @@ func (o ApolloAllInOne) DeleteServices(ctx context.Context, instance client.Obje
 	return nil
 }
 
-// 删除deployment
+// DeleteDeployments 删除deployment
 func (o ApolloAllInOne) DeleteDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -148,5 +150,10 @@ func (o ApolloAllInOne) DeleteDeployments(ctx context.Context, instance client.O
 		}
 	}
 
+	return nil
+}
+
+// DeleteIngresses 删除ingress
+func (o ApolloAllInOne) DeleteIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error {
 	return nil
 }

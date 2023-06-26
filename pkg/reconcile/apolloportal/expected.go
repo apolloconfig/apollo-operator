@@ -7,6 +7,7 @@ import (
 	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,7 +16,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (o Apolloportal) ExpectedConfigMaps(ctx context.Context, instance client.Object, params models.Params, expected []corev1.ConfigMap, retry bool) error {
+// ExpectedConfigMaps 创建或更新configmaps
+func (o ApolloPortal) ExpectedConfigMaps(ctx context.Context, instance client.Object, params models.Params, expected []corev1.ConfigMap, retry bool) error {
 	for _, obj := range expected {
 		desired := obj
 
@@ -77,8 +79,8 @@ func (o Apolloportal) ExpectedConfigMaps(ctx context.Context, instance client.Ob
 	return nil
 }
 
-// 创建或更新endpoints
-func (o Apolloportal) ExpectedEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints, retry bool) error {
+// ExpectedEndpoints 创建或更新endpoints
+func (o ApolloPortal) ExpectedEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints, retry bool) error {
 	for _, obj := range expected {
 		desired := obj
 
@@ -163,8 +165,8 @@ func EndpointsChanged(desired *corev1.Endpoints, existing *corev1.Endpoints) boo
 	return false
 }
 
-// 创建或更新service
-func (o Apolloportal) ExpectedServices(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Service) error {
+// ExpectedServices 创建或更新service
+func (o ApolloPortal) ExpectedServices(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Service) error {
 	for _, obj := range expected {
 		desired := obj
 
@@ -215,8 +217,8 @@ func (o Apolloportal) ExpectedServices(ctx context.Context, instance client.Obje
 	return nil
 }
 
-// 创建或更新deployment
-func (o Apolloportal) ExpectedDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
+// ExpectedDeployments 创建或更新deployment
+func (o ApolloPortal) ExpectedDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
 	for _, obj := range expected {
 		desired := obj
 
@@ -264,5 +266,48 @@ func (o Apolloportal) ExpectedDeployments(ctx context.Context, instance client.O
 		params.Log.V(2).Info("applied", "deployment.name", desired.Name, "deployment.namespace", desired.Namespace)
 	}
 
+	return nil
+}
+
+// ExpectedIngresses 创建或更新ingresses
+func (o ApolloPortal) ExpectedIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error {
+	for _, obj := range expected {
+		desired := obj
+
+		if err := controllerutil.SetControllerReference(instance, &desired, params.Scheme); err != nil {
+			return fmt.Errorf("failed to set controller reference: %w", err)
+		}
+
+		existing := &networkingv1.Ingress{}
+		nns := types.NamespacedName{Namespace: desired.Namespace, Name: desired.Name}
+		clientGetErr := params.Client.Get(ctx, nns, existing)
+		if clientGetErr != nil && k8serrors.IsNotFound(clientGetErr) {
+			if err := params.Client.Create(ctx, &desired); err != nil {
+				return fmt.Errorf("failed to create: %w", err)
+			}
+			params.Log.V(2).Info("created", "ingress.name", desired.Name, "ingress.namespace", desired.Namespace)
+			return nil
+		} else if clientGetErr != nil {
+			return fmt.Errorf("failed to get: %w", clientGetErr)
+		}
+
+		// it exists already, merge the two if the end result isn't identical to the existing one
+		updated := existing.DeepCopy()
+		utils.InitObjectMeta(updated)
+		updated.SetAnnotations(desired.GetAnnotations())
+		updated.SetLabels(desired.GetLabels())
+		updated.SetOwnerReferences(desired.GetOwnerReferences())
+
+		updated.Spec.Rules = desired.Spec.Rules
+		updated.Spec.TLS = desired.Spec.TLS
+		updated.Spec.IngressClassName = desired.Spec.IngressClassName
+
+		patch := client.MergeFrom(existing)
+		if err := params.Client.Patch(ctx, updated, patch); err != nil {
+			return fmt.Errorf("failed to apply changes: %w", err)
+		}
+
+		params.Log.V(2).Info("applied", "ingress.name", desired.Name, "ingress.namespace", desired.Namespace)
+	}
 	return nil
 }

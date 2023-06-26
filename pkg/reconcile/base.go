@@ -8,6 +8,7 @@ import (
 	"context"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -31,6 +32,12 @@ type ApolloObject interface {
 	DesiredDeployments(ctx context.Context, instance client.Object, params models.Params) []appsv1.Deployment                  // 构建deployment对象
 	ExpectedDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error // 创建或更新deployment
 	DeleteDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error   // 删除deployment
+
+	// ingerss
+	DesiredIngresses(ctx context.Context, instance client.Object, params models.Params) []networkingv1.Ingress                  // 构建ingress对象
+	ExpectedIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error // 创建或更新ingress
+	DeleteIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error   // 删除ingress
+
 }
 
 var (

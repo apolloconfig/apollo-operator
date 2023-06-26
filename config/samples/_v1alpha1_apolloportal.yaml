@@ -7,7 +7,7 @@ spec:
   image: apolloconfig/apollo-portal:2.1.0
   imagePullPolicy: IfNotPresent
   #imagePullSecrets:
-  replicas: 2
+  replicas: 1
   containerPort: 8070
   #strategy:
   #env:
@@ -30,7 +30,7 @@ spec:
   portaldb:
     username: root
     password: mysqlpw
-    host: 172.29.56.8
+    host: 172.29.60.202
     port: 49153
     dbName: ApolloPortalDB
     connectionStringProperties: characterEncoding=utf8
@@ -56,3 +56,11 @@ spec:
   #nodeSelector:
   #affinity:
   #tolerations:
+  ingress:
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+    hosts:
+      - apollo-portal.v1.com
+      - apollo-portal.v2.com
+    #tls: #一定要和host保持一直

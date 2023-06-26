@@ -1,8 +1,8 @@
 package apolloportal
 
-type Apolloportal struct {
+type ApolloPortal struct {
 }
 
-func NewApolloPortal() Apolloportal {
-	return Apolloportal{}
+func NewApolloPortal() ApolloPortal {
+	return ApolloPortal{}
 }

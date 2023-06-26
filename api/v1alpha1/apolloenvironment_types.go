@@ -81,6 +81,10 @@ type ConfigService struct {
 	Affinity corev1.Affinity `json:"affinity,omitempty"`
 
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// Ingress is used to specify how ApolloConfig is exposed.
+	// +optional
+	Ingress Ingress `json:"ingress,omitempty"`
 }
 
 type ConfigServiceConfig struct {
@@ -116,6 +120,10 @@ type AdminService struct {
 	Affinity corev1.Affinity `json:"affinity,omitempty"`
 
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// Ingress is used to specify how ApolloAdmin is exposed.
+	// +optional
+	Ingress Ingress `json:"ingress,omitempty"`
 }
 
 type AdminServiceConfig struct {

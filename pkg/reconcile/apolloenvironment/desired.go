@@ -9,6 +9,7 @@ import (
 	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -539,4 +540,130 @@ func buildAdminProbe(ctx context.Context, instance *apolloiov1alpha1.ApolloEnvir
 		},
 	}
 	return livenessProbe, readinessProbe, nil
+}
+
+// DesiredIngresses 构建ingress对象
+func (o ApolloEnvironment) DesiredIngresses(ctx context.Context, instance client.Object, params models.Params) []networkingv1.Ingress {
+	desired := []networkingv1.Ingress{}
+	type builder func(context.Context, client.Object, models.Params) *networkingv1.Ingress
+	for _, builder := range []builder{configIngress, adminIngress} {
+		ingress := builder(ctx, instance, params)
+		// add only the non-nil to the list
+		if ingress != nil {
+			desired = append(desired, *ingress)
+		}
+	}
+	return desired
+}
+
+func configIngress(ctx context.Context, obj client.Object, params models.Params) *networkingv1.Ingress {
+	instance := obj.(*apolloiov1alpha1.ApolloEnvironment)
+	name := naming.ConfigIngress(instance)
+	labels := utils.Labels(instance, name, []string{})
+
+	spec, _ := buildConfigIngressSpec(ctx, instance)
+
+	return &networkingv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   instance.GetNamespace(),
+			Annotations: instance.Spec.ConfigService.Ingress.Annotations,
+			Labels:      labels,
+		},
+		Spec: spec,
+	}
+}
+
+func buildConfigIngressSpec(ctx context.Context, instance *apolloiov1alpha1.ApolloEnvironment) (networkingv1.IngressSpec, error) {
+	rules := make([]networkingv1.IngressRule, 0, len(instance.Spec.ConfigService.Ingress.Hosts))
+	for _, host := range instance.Spec.ConfigService.Ingress.Hosts {
+		rules = append(rules, buildConfigRule(instance, host))
+	}
+
+	return networkingv1.IngressSpec{
+		TLS:              instance.Spec.ConfigService.Ingress.TLS,
+		Rules:            rules,
+		IngressClassName: instance.Spec.ConfigService.Ingress.IngressClassName,
+	}, nil
+}
+
+func buildConfigRule(instance *apolloiov1alpha1.ApolloEnvironment, host string) networkingv1.IngressRule {
+	pathType := networkingv1.PathTypePrefix // NOTE: 先默认 Prefix
+	return networkingv1.IngressRule{
+		Host: host,
+		IngressRuleValue: networkingv1.IngressRuleValue{
+			HTTP: &networkingv1.HTTPIngressRuleValue{
+				Paths: []networkingv1.HTTPIngressPath{
+					{
+						PathType: &pathType,
+						Path:     "/",
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: naming.ConfigService(instance),
+								Port: networkingv1.ServiceBackendPort{
+									Number: instance.Spec.ConfigService.Service.Port,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func adminIngress(ctx context.Context, obj client.Object, params models.Params) *networkingv1.Ingress {
+	instance := obj.(*apolloiov1alpha1.ApolloEnvironment)
+	name := naming.AdminIngress(instance)
+	labels := utils.Labels(instance, name, []string{})
+
+	spec, _ := buildAdminIngressSpec(ctx, instance)
+
+	return &networkingv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   instance.GetNamespace(),
+			Annotations: instance.Spec.AdminService.Ingress.Annotations,
+			Labels:      labels,
+		},
+		Spec: spec,
+	}
+}
+
+func buildAdminIngressSpec(ctx context.Context, instance *apolloiov1alpha1.ApolloEnvironment) (networkingv1.IngressSpec, error) {
+	rules := make([]networkingv1.IngressRule, 0, len(instance.Spec.AdminService.Ingress.Hosts))
+	for _, host := range instance.Spec.AdminService.Ingress.Hosts {
+		rules = append(rules, buildAdminRule(instance, host))
+	}
+
+	return networkingv1.IngressSpec{
+		TLS:              instance.Spec.AdminService.Ingress.TLS,
+		Rules:            rules,
+		IngressClassName: instance.Spec.AdminService.Ingress.IngressClassName,
+	}, nil
+}
+
+func buildAdminRule(instance *apolloiov1alpha1.ApolloEnvironment, host string) networkingv1.IngressRule {
+	pathType := networkingv1.PathTypePrefix // NOTE: 先默认 Prefix
+	return networkingv1.IngressRule{
+		Host: host,
+		IngressRuleValue: networkingv1.IngressRuleValue{
+			HTTP: &networkingv1.HTTPIngressRuleValue{
+				Paths: []networkingv1.HTTPIngressPath{
+					{
+						PathType: &pathType,
+						Path:     "/",
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: naming.AdminService(instance),
+								Port: networkingv1.ServiceBackendPort{
+									Number: instance.Spec.AdminService.Service.Port,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }

@@ -9,13 +9,15 @@ import (
 	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 )
 
-func (o Apolloportal) DesiredConfigMaps(ctx context.Context, instance client.Object, params models.Params) []corev1.ConfigMap {
+// DesiredConfigMaps 构建configmap对象
+func (o ApolloPortal) DesiredConfigMaps(ctx context.Context, instance client.Object, params models.Params) []corev1.ConfigMap {
 	// NOTE 一定要和volume中使用的名字一致
 	name := naming.ConfigMap(instance)
 	labels := utils.Labels(instance, name, []string{})
@@ -79,8 +81,8 @@ func buildConfig(_ context.Context, obj client.Object) (map[string]string, error
 
 }
 
-// 构建endpoints对象
-func (o Apolloportal) DesiredEndpoints(ctx context.Context, instance client.Object, params models.Params) []corev1.Endpoints {
+// DesiredEndpoints 构建endpoints对象
+func (o ApolloPortal) DesiredEndpoints(ctx context.Context, instance client.Object, params models.Params) []corev1.Endpoints {
 	// TODO 目前需求只有一个subset，后续可以拓展为多个
 	subset, _ := buildSubset(ctx, instance)
 	endpoints := corev1.Endpoints{
@@ -111,8 +113,8 @@ func buildSubset(_ context.Context, obj client.Object) (corev1.EndpointSubset, e
 	}, nil
 }
 
-// 构建service对象
-func (o Apolloportal) DesiredServices(ctx context.Context, instance client.Object, params models.Params) []corev1.Service {
+// DesiredServices 构建service对象
+func (o ApolloPortal) DesiredServices(ctx context.Context, instance client.Object, params models.Params) []corev1.Service {
 	desired := []corev1.Service{}
 	type builder func(context.Context, client.Object, models.Params) *corev1.Service
 	for _, builder := range []builder{portaldbService, portalService} {
@@ -198,8 +200,8 @@ func headlessService(ctx context.Context, instance client.Object, params models.
 	return h
 }
 
-// 构建deployment对象
-func (o Apolloportal) DesiredDeployments(ctx context.Context, instance client.Object, params models.Params) []appsv1.Deployment {
+// DesiredDeployments 构建deployment对象
+func (o ApolloPortal) DesiredDeployments(ctx context.Context, instance client.Object, params models.Params) []appsv1.Deployment {
 	name := naming.PortalDeployment(instance)
 	labels := utils.Labels(instance, name, []string{})
 
@@ -344,4 +346,63 @@ func buildProbe(ctx context.Context, instance *apolloiov1alpha1.ApolloPortal) (l
 		},
 	}
 	return livenessProbe, readinessProbe, nil
+}
+
+// DesiredIngresses 构建ingress对象
+func (o ApolloPortal) DesiredIngresses(ctx context.Context, obj client.Object, params models.Params) []networkingv1.Ingress {
+	instance := obj.(*apolloiov1alpha1.ApolloPortal)
+	name := naming.PortalIngress(instance)
+	labels := utils.Labels(instance, name, []string{})
+
+	spec, _ := buildIngressSpec(ctx, instance)
+
+	ingress := networkingv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   instance.GetNamespace(),
+			Annotations: instance.Spec.Ingress.Annotations,
+			Labels:      labels,
+		},
+		Spec: spec,
+	}
+
+	return []networkingv1.Ingress{ingress}
+}
+
+func buildIngressSpec(ctx context.Context, instance *apolloiov1alpha1.ApolloPortal) (networkingv1.IngressSpec, error) {
+	rules := make([]networkingv1.IngressRule, 0, len(instance.Spec.Ingress.Hosts))
+	for _, host := range instance.Spec.Ingress.Hosts {
+		rules = append(rules, buildRule(instance, host))
+	}
+
+	return networkingv1.IngressSpec{
+		TLS:              instance.Spec.Ingress.TLS,
+		Rules:            rules,
+		IngressClassName: instance.Spec.Ingress.IngressClassName,
+	}, nil
+}
+
+func buildRule(instance *apolloiov1alpha1.ApolloPortal, host string) networkingv1.IngressRule {
+	pathType := networkingv1.PathTypePrefix // NOTE: 先默认 Prefix
+	return networkingv1.IngressRule{
+		Host: host,
+		IngressRuleValue: networkingv1.IngressRuleValue{
+			HTTP: &networkingv1.HTTPIngressRuleValue{
+				Paths: []networkingv1.HTTPIngressPath{
+					{
+						PathType: &pathType,
+						Path:     "/",
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: naming.PortalService(instance),
+								Port: networkingv1.ServiceBackendPort{
+									Number: instance.Spec.Service.Port,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }

@@ -6,7 +6,7 @@ spec:
   configdb:
     username: root
     password: mysqlpw
-    host: 172.29.56.8
+    host: 172.29.60.202
     port: 49153
     dbName: ApolloConfigDB
     connectionStringProperties: characterEncoding=utf8
@@ -18,7 +18,7 @@ spec:
     image: apolloconfig/apollo-configservice:2.1.0
     imagePullPolicy: IfNotPresent
     #imagePullSecrets:
-    replicas: 3
+    replicas: 1
     containerPort: 8080
     #strategy:
     #env:
@@ -48,11 +48,18 @@ spec:
     #nodeSelector:
     #affinity:
     #tolerations:
+    ingress:
+      #IngressClassName:
+      #annotations:
+      hosts:
+        - apollo-config.v1.com
+        - apollo-config.v2.com
+      #tls: #一定要和host保持一直
   adminService:
     image: apolloconfig/apollo-adminservice:2.1.0
     imagePullPolicy: IfNotPresent
     #imagePullSecrets:
-    replicas: 2
+    replicas: 1
     containerPort: 8090
     #strategy:
     #env:
@@ -82,3 +89,10 @@ spec:
     #nodeSelector:
     #affinity:
     #tolerations:
+    ingress:
+      #IngressClassName:
+      #annotations:
+      hosts:
+        - apollo-admin.v1.com
+        - apollo-admin.v2.com
+      #tls: #一定要和host保持一直

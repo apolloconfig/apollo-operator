@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -59,6 +60,10 @@ type ApolloPortalSpec struct {
 	Affinity corev1.Affinity `json:"affinity,omitempty"`
 
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// Ingress is used to specify how ApolloPortal is exposed.
+	// +optional
+	Ingress Ingress `json:"ingress,omitempty"`
 }
 
 type Service struct {
@@ -101,6 +106,27 @@ type File struct {
 type Probe struct {
 	Liveness   corev1.Probe `json:"livenessProbe,omitempty"`
 	Readineeds corev1.Probe `json:"readinessProbe,omitempty"`
+}
+
+type Ingress struct {
+
+	// IngressClassName is the name of an IngressClass cluster resource. Ingress
+	// controller implementations use this field to know whether they should be
+	// serving this Ingress resource.
+	// +optional
+	IngressClassName *string `json:"ingressClassName,omitempty"`
+
+	// Annotations to add to ingress.
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// HTTP Host URL
+	// +optional
+	Hosts []string `json:"hosts,omitempty"`
+
+	// TLS configuration.
+	// +optional
+	TLS []networkingv1.IngressTLS `json:"tls,omitempty"`
 }
 
 // ApolloPortalStatus defines the observed state of ApolloPortal

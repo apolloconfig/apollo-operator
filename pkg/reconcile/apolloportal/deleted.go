@@ -7,10 +7,11 @@ import (
 	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (o Apolloportal) DeleteConfigMaps(ctx context.Context, instance client.Object, params models.Params, expected []corev1.ConfigMap) error {
+func (o ApolloPortal) DeleteConfigMaps(ctx context.Context, instance client.Object, params models.Params, expected []corev1.ConfigMap) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
 		client.MatchingLabels(map[string]string{
@@ -46,7 +47,7 @@ func (o Apolloportal) DeleteConfigMaps(ctx context.Context, instance client.Obje
 }
 
 // 删除endpoints
-func (o Apolloportal) DeleteEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints) error {
+func (o ApolloPortal) DeleteEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
 		client.MatchingLabels(map[string]string{
@@ -82,7 +83,7 @@ func (o Apolloportal) DeleteEndpoints(ctx context.Context, instance client.Objec
 }
 
 // 删除service
-func (o Apolloportal) DeleteServices(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Service) error {
+func (o ApolloPortal) DeleteServices(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Service) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
 		client.MatchingLabels(map[string]string{
@@ -117,7 +118,7 @@ func (o Apolloportal) DeleteServices(ctx context.Context, instance client.Object
 }
 
 // 删除deployment
-func (o Apolloportal) DeleteDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
+func (o ApolloPortal) DeleteDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
 		client.MatchingLabels(map[string]string{
@@ -148,5 +149,10 @@ func (o Apolloportal) DeleteDeployments(ctx context.Context, instance client.Obj
 		}
 	}
 
+	return nil
+}
+
+// DeleteIngresses 删除ingress
+func (o ApolloPortal) DeleteIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error {
 	return nil
 }
