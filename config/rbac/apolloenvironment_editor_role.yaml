@@ -1,0 +1,24 @@
+# permissions for end users to edit apolloenvironments.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: apolloenvironment-editor-role
+rules:
+- apiGroups:
+  - apollo.io
+  resources:
+  - apolloenvironments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apollo.io
+  resources:
+  - apolloenvironments/status
+  verbs:
+  - get

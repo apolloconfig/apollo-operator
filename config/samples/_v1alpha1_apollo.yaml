@@ -1,0 +1,6 @@
+apiVersion: apollo.io/v1alpha1
+kind: Apollo
+metadata:
+  name: apollo-sample
+spec:
+  # TODO(user): Add fields here

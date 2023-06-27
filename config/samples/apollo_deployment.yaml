@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apollo-adminservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apollo-admin
+  template:
+    metadata:
+      labels:
+        app: apollo-admin
+    spec:
+      containers:
+        - name: apollo-adminservice
+          image: apolloconfig/apollo-adminservice:latest
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql.apollo.svc.cluster.local:3306/ApolloConfigDB?characterEncoding=utf8
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: password
+          ports:
+            - containerPort: 8090
+          volumeMounts:
+            - mountPath: /opt/logs
+              name: apollo-logs
+      volumes:
+        - hostPath:
+            path: /tmp/logs
+          name: apollo-logs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apollo-configservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apollo-config
+  template:
+    metadata:
+      labels:
+        app: apollo-config
+    spec:
+      containers:
+        - name: apollo-configservice
+          image: apolloconfig/apollo-configservice:latest
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql.apollo.svc.cluster.local:3306/ApolloConfigDB?characterEncoding=utf8
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: password
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /opt/logs
+              name: apollo-logs
+      volumes:
+        - hostPath:
+            path: /tmp/logs
+          name: apollo-logs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apollo-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apollo-portal
+  template:
+    metadata:
+      labels:
+        app: apollo-portal
+    spec:
+      containers:
+        - name: apollo-portal
+          image: apolloconfig/apollo-portal:latest
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql.apollo.svc.cluster.local:3306/ApolloPortalDB?characterEncoding=utf8
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: password
+            - name: APOLLO_PORTAL_ENVS
+              value: dev,pro
+            - name: DEV_META
+              value: http://apollo-configservice-service.apollo.svc.cluster.local:8080
+            - name: PRO_META
+              value: http://apollo-configservice-service.apollo.svc.cluster.local:8080
+          ports:
+            - containerPort: 8070
+          volumeMounts:
+            - mountPath: /opt/logs
+              name: apollo-logs
+      volumes:
+        - hostPath:
+            path: /tmp/logs
+          name: apollo-logs
+
+
+# service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apollo-portal-service
+spec:
+  selector:
+    app: apollo-portal
+  ports:
+    - name: portal-http
+      port: 8070
+      targetPort: 8070 # 容器的端口号
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apollo-configservice-service
+spec:
+  selector:
+    app: apollo-config
+  ports:
+    - name: config-http
+      port: 8080
+      targetPort: 8080 # 容器的端口号
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apollo-adminservice-service
+spec:
+  selector:
+    app: apollo-admin
+  ports:
+    - name: admin-http
+      port: 8090
+      targetPort: 8090 # 容器的端口号
