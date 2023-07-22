@@ -5,7 +5,7 @@ metadata:
   name: apolloportal-editor-role
 rules:
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloportals
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloportals/status
   verbs:

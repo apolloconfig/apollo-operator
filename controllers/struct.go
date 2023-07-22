@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"apollo.io/apollo-operator/pkg/reconcile/models"
+	"apolloconfig.com/apollo-operator/pkg/reconcile/models"
 	"context"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"

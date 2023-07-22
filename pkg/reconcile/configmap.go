@@ -1,7 +1,7 @@
 package reconcile
 
 import (
-	"apollo.io/apollo-operator/pkg/reconcile/models"
+	"apolloconfig.com/apollo-operator/pkg/reconcile/models"
 	"context"
 	"fmt"
 	"sigs.k8s.io/controller-runtime/pkg/client"

@@ -5,7 +5,7 @@ metadata:
   name: apolloenvironment-editor-role
 rules:
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloenvironments
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloenvironments/status
   verbs:

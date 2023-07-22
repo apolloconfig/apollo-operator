@@ -1,4 +1,4 @@
-apiVersion: apollo.io/v1alpha1
+apiVersion: apolloconfig.com/v1alpha1
 kind: ApolloEnvironment
 metadata:
   name: apolloenvironment-sample
@@ -6,7 +6,7 @@ spec:
   configdb:
     username: root
     password: mysqlpw
-    host: 172.29.60.202
+    host: 172.24.93.158
     port: 49153
     dbName: ApolloConfigDB
     connectionStringProperties: characterEncoding=utf8

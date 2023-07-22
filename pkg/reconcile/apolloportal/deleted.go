@@ -1,8 +1,8 @@
 package apolloportal
 
 import (
-	"apollo.io/apollo-operator/pkg/reconcile/models"
-	"apollo.io/apollo-operator/pkg/utils/naming"
+	"apolloconfig.com/apollo-operator/pkg/reconcile/models"
+	"apolloconfig.com/apollo-operator/pkg/utils/naming"
 	"context"
 	"fmt"
 	appsv1 "k8s.io/api/apps/v1"

@@ -1,10 +1,10 @@
 package reconcile
 
 import (
-	"apollo.io/apollo-operator/pkg/reconcile/apollo"
-	"apollo.io/apollo-operator/pkg/reconcile/apolloenvironment"
-	"apollo.io/apollo-operator/pkg/reconcile/apolloportal"
-	"apollo.io/apollo-operator/pkg/reconcile/models"
+	"apolloconfig.com/apollo-operator/pkg/reconcile/apollo"
+	"apolloconfig.com/apollo-operator/pkg/reconcile/apolloenvironment"
+	"apolloconfig.com/apollo-operator/pkg/reconcile/apolloportal"
+	"apolloconfig.com/apollo-operator/pkg/reconcile/models"
 	"context"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

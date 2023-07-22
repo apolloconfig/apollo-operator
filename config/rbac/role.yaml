@@ -78,7 +78,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloenvironments
   verbs:
@@ -90,13 +90,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloenvironments/finalizers
   verbs:
   - update
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloenvironments/status
   verbs:
@@ -104,7 +104,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloes
   verbs:
@@ -116,13 +116,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloes/finalizers
   verbs:
   - update
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloes/status
   verbs:
@@ -130,7 +130,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloportals
   verbs:
@@ -142,13 +142,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloportals/finalizers
   verbs:
   - update
 - apiGroups:
-  - apollo.io
+  - apolloconfig.com
   resources:
   - apolloportals/status
   verbs:

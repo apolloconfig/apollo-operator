@@ -1,4 +1,4 @@
-apiVersion: apollo.io/v1alpha1
+apiVersion: apolloconfig.com/v1alpha1
 kind: ApolloPortal
 metadata:
   name: apolloportal-sample
@@ -30,7 +30,7 @@ spec:
   portaldb:
     username: root
     password: mysqlpw
-    host: 172.29.60.202
+    host: 172.24.93.158
     port: 49153
     dbName: ApolloPortalDB
     connectionStringProperties: characterEncoding=utf8

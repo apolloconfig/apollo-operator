@@ -1,4 +1,4 @@
-apiVersion: apollo.io/v1alpha1
+apiVersion: apolloconfig.com/v1alpha1
 kind: Apollo
 metadata:
   name: apollo-sample

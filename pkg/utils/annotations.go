@@ -9,7 +9,7 @@ func Annotations(instance client.Object) map[string]string {
 
 	// TODO 增加默认注解
 	// set default apollo operator annotations
-	annotations["apollo.io/apollo-portal/port"] = "8070"
+	annotations["apolloconfig.com/apollo-portal/port"] = "8070"
 
 	// allow override of prometheus annotations
 	if instance.GetAnnotations() != nil {

@@ -1,4 +1,4 @@
-module apollo.io/apollo-operator
+module apolloconfig.com/apollo-operator
 
 go 1.18
 

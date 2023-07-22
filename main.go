@@ -31,8 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	apolloiov1alpha1 "apollo.io/apollo-operator/api/v1alpha1"
-	"apollo.io/apollo-operator/controllers"
+	apolloiov1alpha1 "apolloconfig.com/apollo-operator/api/v1alpha1"
+	"apolloconfig.com/apollo-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -71,7 +71,7 @@ func main() {
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "f54cb3e5.apollo.io",
+		LeaderElectionID:       "f54cb3e5.apolloconfig.com",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly

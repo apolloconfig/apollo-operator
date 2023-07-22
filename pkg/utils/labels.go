@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"apollo.io/apollo-operator/pkg/utils/naming"
+	"apolloconfig.com/apollo-operator/pkg/utils/naming"
 	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"

@@ -17,9 +17,9 @@ limitations under the License.
 package controllers
 
 import (
-	apolloiov1alpha1 "apollo.io/apollo-operator/api/v1alpha1"
-	"apollo.io/apollo-operator/pkg/reconcile"
-	"apollo.io/apollo-operator/pkg/reconcile/models"
+	apolloiov1alpha1 "apolloconfig.com/apollo-operator/api/v1alpha1"
+	"apolloconfig.com/apollo-operator/pkg/reconcile"
+	"apolloconfig.com/apollo-operator/pkg/reconcile/models"
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
@@ -98,9 +98,9 @@ func NewApolloPortalReconciler(p ReconcilerParams) *ApolloPortalReconciler {
 	return r
 }
 
-//+kubebuilder:rbac:groups=apollo.io,resources=apolloportals,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=apollo.io,resources=apolloportals/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=apollo.io,resources=apolloportals/finalizers,verbs=update
+//+kubebuilder:rbac:groups=apolloconfig.com,resources=apolloportals,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=apolloconfig.com,resources=apolloportals/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=apolloconfig.com,resources=apolloportals/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
