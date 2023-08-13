@@ -94,7 +94,7 @@ func main() {
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("ApolloEnvironment"),
 		Scheme:   mgr.GetScheme(),
-		Recorder: nil,
+		Recorder: mgr.GetEventRecorderFor("apollo-environment-operator"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApolloEnvironment")
 		os.Exit(1)
@@ -109,11 +109,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.ApolloReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+	if err = controllers.NewApolloAllInOneReconciler(controllers.ReconcilerParams{
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("ApolloAllInOne"),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("apollo-allinone-operator"),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Apollo")
+		setupLog.Error(err, "unable to create controller", "controller", "ApolloAllInOne")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

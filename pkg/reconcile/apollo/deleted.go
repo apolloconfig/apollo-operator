@@ -20,14 +20,14 @@ func (o ApolloAllInOne) DeleteConfigMaps(ctx context.Context, instance client.Ob
 			"app.kubernetes.io/managed-by": "apollo-operator",
 		}),
 	}
-	configmaplist := &corev1.ConfigMapList{}
-	if err := params.Client.List(ctx, configmaplist, opts...); err != nil {
+	list := &corev1.ConfigMapList{}
+	if err := params.Client.List(ctx, list, opts...); err != nil {
 		return fmt.Errorf("failed to list configmap : %w", err)
 	}
 
 	// 删除不属于expected的部分
-	for i := range configmaplist.Items {
-		existing := configmaplist.Items[i]
+	for i := range list.Items {
+		existing := list.Items[i]
 		del := true
 		for _, keep := range expected {
 			if keep.Name == existing.Name && keep.Namespace == existing.Namespace {
@@ -56,14 +56,14 @@ func (o ApolloAllInOne) DeleteEndpoints(ctx context.Context, instance client.Obj
 			"app.kubernetes.io/managed-by": "apollo-operator",
 		}),
 	}
-	Endpointslist := &corev1.EndpointsList{}
-	if err := params.Client.List(ctx, Endpointslist, opts...); err != nil {
+	list := &corev1.EndpointsList{}
+	if err := params.Client.List(ctx, list, opts...); err != nil {
 		return fmt.Errorf("failed to list endpoints : %w", err)
 	}
 
 	// 删除不属于expected的部分
-	for i := range Endpointslist.Items {
-		existing := Endpointslist.Items[i]
+	for i := range list.Items {
+		existing := list.Items[i]
 		del := true
 		for _, keep := range expected {
 			if keep.Name == existing.Name && keep.Namespace == existing.Namespace {
@@ -94,7 +94,7 @@ func (o ApolloAllInOne) DeleteServices(ctx context.Context, instance client.Obje
 	}
 	list := &corev1.ServiceList{}
 	if err := params.Client.List(ctx, list, opts...); err != nil {
-		return fmt.Errorf("failed to list: %w", err)
+		return fmt.Errorf("failed to list service: %w", err)
 	}
 
 	for i := range list.Items {
@@ -129,7 +129,7 @@ func (o ApolloAllInOne) DeleteDeployments(ctx context.Context, instance client.O
 	}
 	list := &appsv1.DeploymentList{}
 	if err := params.Client.List(ctx, list, opts...); err != nil {
-		return fmt.Errorf("failed to list: %w", err)
+		return fmt.Errorf("failed to list deployment: %w", err)
 	}
 
 	for i := range list.Items {
@@ -153,7 +153,73 @@ func (o ApolloAllInOne) DeleteDeployments(ctx context.Context, instance client.O
 	return nil
 }
 
+// DeleteStatefulSets 删除statefulset
+func (o ApolloAllInOne) DeleteStatefulSets(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.StatefulSet) error {
+	opts := []client.ListOption{
+		client.InNamespace(instance.GetNamespace()),
+		client.MatchingLabels(map[string]string{
+			"app.kubernetes.io/instance":   naming.Truncate("%s.%s", 63, instance.GetNamespace(), instance.GetName()),
+			"app.kubernetes.io/managed-by": "apollo-operator",
+		}),
+	}
+	list := &appsv1.StatefulSetList{}
+	if err := params.Client.List(ctx, list, opts...); err != nil {
+		return fmt.Errorf("failed to list statefulset: %w", err)
+	}
+
+	for i := range list.Items {
+		existing := list.Items[i]
+		del := true
+		for _, keep := range expected {
+			if keep.Name == existing.Name && keep.Namespace == existing.Namespace {
+				del = false
+				break
+			}
+		}
+
+		if del {
+			if err := params.Client.Delete(ctx, &existing); err != nil {
+				return fmt.Errorf("failed to delete: %w", err)
+			}
+			params.Log.V(2).Info("deleted", "statefulset.name", existing.Name, "statefulset.namespace", existing.Namespace)
+		}
+	}
+
+	return nil
+}
+
 // DeleteIngresses 删除ingress
 func (o ApolloAllInOne) DeleteIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error {
+	opts := []client.ListOption{
+		client.InNamespace(instance.GetNamespace()),
+		client.MatchingLabels(map[string]string{
+			"app.kubernetes.io/instance":   naming.Truncate("%s.%s", 63, instance.GetNamespace(), instance.GetName()),
+			"app.kubernetes.io/managed-by": "apollo-operator",
+		}),
+	}
+	list := &networkingv1.IngressList{}
+	if err := params.Client.List(ctx, list, opts...); err != nil {
+		return fmt.Errorf("failed to list ingress : %w", err)
+	}
+
+	// 删除不属于expected的部分
+	for i := range list.Items {
+		existing := list.Items[i]
+		del := true
+		for _, keep := range expected {
+			if keep.Name == existing.Name && keep.Namespace == existing.Namespace {
+				del = false
+				break
+			}
+		}
+
+		if del {
+			if err := params.Client.Delete(ctx, &existing); err != nil {
+				return fmt.Errorf("failed to delete: %w", err)
+			}
+			params.Log.V(2).Info("deleted", "ingress.name", existing.Name, "ingress.namespace", existing.Namespace)
+		}
+	}
+
 	return nil
 }

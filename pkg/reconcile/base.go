@@ -41,9 +41,9 @@ type ApolloObject interface {
 }
 
 var (
-	apolloPortal      ApolloObject
-	apolloEnvironment ApolloObject
-	apolloAllInOne    ApolloObject
+	apolloPortal      apolloportal.ApolloPortal
+	apolloEnvironment apolloenvironment.ApolloEnvironment
+	apolloAllInOne    apollo.ApolloAllInOne
 )
 
 func init() {
@@ -52,14 +52,14 @@ func init() {
 	apolloAllInOne = apollo.NewApolloAllInOne()
 }
 
-func ApolloPortal() ApolloObject {
+func ApolloPortal() apolloportal.ApolloPortal {
 	return apolloPortal
 }
 
-func ApolloEnvironment() ApolloObject {
+func ApolloEnvironment() apolloenvironment.ApolloEnvironment {
 	return apolloEnvironment
 }
 
-func ApolloAllInOne() ApolloObject {
+func ApolloAllInOne() apollo.ApolloAllInOne {
 	return apolloAllInOne
 }

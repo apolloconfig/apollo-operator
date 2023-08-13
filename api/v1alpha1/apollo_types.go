@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	appv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,8 +30,52 @@ type ApolloSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Apollo. Edit apollo_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	ConfigService ConfigService `json:"configService,omitempty"`
+
+	AdminService AdminService `json:"adminService,omitempty"`
+
+	PortalService PortalService `json:"portalService,omitempty"`
+}
+
+type PortalService struct {
+	Image string `json:"image,omitempty"`
+
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+
+	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+
+	Replicas int32 `json:"replicas,omitempty"`
+
+	ContainerPort int32 `json:"containerPort,omitempty"`
+
+	Strategy appv1.DeploymentStrategy `json:"strategy,omitempty"`
+
+	Env []corev1.EnvVar `json:"env,omitempty"`
+
+	Service Service `json:"service,omitempty"`
+
+	Config PortalServiceConfig `json:"config,omitempty"`
+
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	Probe Probe `json:"probe,omitempty"`
+
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	Affinity corev1.Affinity `json:"affinity,omitempty"`
+
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// Ingress is used to specify how ApolloAdmin is exposed.
+	// +optional
+	Ingress Ingress `json:"ingress,omitempty"`
+}
+
+type PortalServiceConfig struct {
+	Envs        string `json:"envs,omitempty"`
+	Profiles    string `json:"profiles,omitempty"`
+	ContextPath string `json:"contextPath,omitempty"`
+	Files       []File `json:"file,omitempty"`
 }
 
 // ApolloStatus defines the observed state of Apollo

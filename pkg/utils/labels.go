@@ -15,7 +15,7 @@ func isFilteredLabel(label string, filterLabels []string) bool {
 	return false
 }
 
-// Labels return the common labels to all objects that are part of a managed ApolloPortal.
+// Labels return the common labels to all objects that are part of a managed Apollo-operator.
 func Labels(instance client.Object, name string, filterLabels []string) map[string]string {
 	// new map every time, so that we don't touch the instance's label
 	base := map[string]string{}

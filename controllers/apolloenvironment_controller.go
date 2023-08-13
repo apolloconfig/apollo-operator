@@ -23,7 +23,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	appv1 "k8s.io/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -46,7 +46,7 @@ type ApolloEnvironmentReconciler struct {
 	muTasks sync.RWMutex
 }
 
-// NewApolloPortalReconciler creates a new reconciler for ApolloPortal objects.
+// NewApolloEnvironmentReconciler creates a new reconciler for ApolloPortal objects.
 func NewApolloEnvironmentReconciler(p ReconcilerParams) *ApolloEnvironmentReconciler {
 	r := &ApolloEnvironmentReconciler{
 		Client:   p.Client,
@@ -172,8 +172,8 @@ func (r *ApolloEnvironmentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.ConfigMap{}).
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&corev1.Service{}).
-		Owns(&appv1.Deployment{}).
-		Owns(&appv1.DaemonSet{}).
-		Owns(&appv1.StatefulSet{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&appsv1.DaemonSet{}).
+		Owns(&appsv1.StatefulSet{}).
 		Complete(r)
 }

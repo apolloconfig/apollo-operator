@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+// ExpectedConfigMaps 创建或更新configmap
 func (o ApolloAllInOne) ExpectedConfigMaps(ctx context.Context, instance client.Object, params models.Params, expected []corev1.ConfigMap, retry bool) error {
 	for _, obj := range expected {
 		desired := obj
@@ -78,7 +79,7 @@ func (o ApolloAllInOne) ExpectedConfigMaps(ctx context.Context, instance client.
 	return nil
 }
 
-// 创建或更新endpoints
+// ExpectedEndpoints 创建或更新endpoints
 func (o ApolloAllInOne) ExpectedEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints, retry bool) error {
 	for _, obj := range expected {
 		desired := obj
@@ -164,7 +165,7 @@ func EndpointsChanged(desired *corev1.Endpoints, existing *corev1.Endpoints) boo
 	return false
 }
 
-// 创建或更新service
+// ExpectedServices 创建或更新service
 func (o ApolloAllInOne) ExpectedServices(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Service) error {
 	for _, obj := range expected {
 		desired := obj
@@ -216,7 +217,7 @@ func (o ApolloAllInOne) ExpectedServices(ctx context.Context, instance client.Ob
 	return nil
 }
 
-// 创建或更新deployment
+// ExpectedDeployments 创建或更新deployment
 func (o ApolloAllInOne) ExpectedDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
 	for _, obj := range expected {
 		desired := obj
@@ -266,6 +267,99 @@ func (o ApolloAllInOne) ExpectedDeployments(ctx context.Context, instance client
 	}
 
 	return nil
+}
+
+// ExpectedStatefulSets 创建或更新statefulset
+func (o ApolloAllInOne) ExpectedStatefulSets(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.StatefulSet) error {
+	for _, obj := range expected {
+		desired := obj
+
+		if err := controllerutil.SetControllerReference(instance, &desired, params.Scheme); err != nil {
+			return fmt.Errorf("failed to set controller reference: %w", err)
+		}
+
+		existing := &appsv1.StatefulSet{}
+		nns := types.NamespacedName{Namespace: desired.Namespace, Name: desired.Name}
+		err := params.Client.Get(ctx, nns, existing)
+		if err != nil && k8serrors.IsNotFound(err) {
+			if clientErr := params.Client.Create(ctx, &desired); clientErr != nil {
+				return fmt.Errorf("failed to create: %w", clientErr)
+			}
+			params.Log.V(2).Info("created", "statefulset.name", desired.Name, "statefulset.namespace", desired.Namespace)
+			continue
+		} else if err != nil {
+			return fmt.Errorf("failed to get: %w", err)
+		}
+
+		// Check for immutable fields. If set, we cannot modify the stateful set, otherwise we will face reconciliation error.
+		if needsDeletion, fieldName := hasImmutableFieldChange(&desired, existing); needsDeletion {
+			params.Log.V(2).Info("Immutable field change detected, trying to delete, the new collector statefulset will be created in the next reconcile cycle",
+				"field", fieldName, "statefulset.name", existing.Name, "statefulset.namespace", existing.Namespace)
+
+			if err := params.Client.Delete(ctx, existing); err != nil {
+				return fmt.Errorf("failed to delete statefulset: %w", err)
+			}
+			continue
+		}
+
+		// it exists already, merge the two if the end result isn't identical to the existing one
+		updated := existing.DeepCopy()
+		utils.InitObjectMeta(updated)
+		updated.SetAnnotations(desired.GetAnnotations())
+		updated.SetLabels(desired.GetLabels())
+		updated.SetOwnerReferences(desired.GetOwnerReferences())
+
+		updated.Spec = desired.Spec // 一定要注意spec中的slice的来源，不能用遍历map的方式获取，否则会导致每次调谐重新创建pod
+
+		patch := client.MergeFrom(existing)
+		if err := params.Client.Patch(ctx, updated, patch); err != nil {
+			return fmt.Errorf("failed to apply changes: %w", err)
+		}
+
+		params.Log.V(2).Info("applied", "statefulset.name", desired.Name, "statefulset.namespace", desired.Namespace)
+	}
+
+	return nil
+}
+
+func hasImmutableFieldChange(desired, existing *appsv1.StatefulSet) (bool, string) {
+	if !apiequality.Semantic.DeepEqual(desired.Spec.Selector, existing.Spec.Selector) {
+		return true, "Spec.Selector"
+	}
+
+	if hasVolumeClaimsTemplatesChanged(desired, existing) {
+		return true, "Spec.VolumeClaimTemplates"
+	}
+
+	return false, ""
+}
+
+// hasVolumeClaimsTemplatesChanged if volume claims template change has been detected.
+// We need to do this manually due to some fields being automatically filled by the API server
+// and these needs to be excluded from the comparison to prevent false positives.
+func hasVolumeClaimsTemplatesChanged(desired, existing *appsv1.StatefulSet) bool {
+	if len(desired.Spec.VolumeClaimTemplates) != len(existing.Spec.VolumeClaimTemplates) {
+		return true
+	}
+
+	for i := range desired.Spec.VolumeClaimTemplates {
+		// VolumeMode is automatically set by the API server, so if it is not set in the CR, assume it's the same as the existing one.
+		if desired.Spec.VolumeClaimTemplates[i].Spec.VolumeMode == nil || *desired.Spec.VolumeClaimTemplates[i].Spec.VolumeMode == "" {
+			desired.Spec.VolumeClaimTemplates[i].Spec.VolumeMode = existing.Spec.VolumeClaimTemplates[i].Spec.VolumeMode
+		}
+
+		if desired.Spec.VolumeClaimTemplates[i].Name != existing.Spec.VolumeClaimTemplates[i].Name {
+			return true
+		}
+		if !apiequality.Semantic.DeepEqual(desired.Spec.VolumeClaimTemplates[i].Annotations, existing.Spec.VolumeClaimTemplates[i].Annotations) {
+			return true
+		}
+		if !apiequality.Semantic.DeepEqual(desired.Spec.VolumeClaimTemplates[i].Spec, existing.Spec.VolumeClaimTemplates[i].Spec) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // ExpectedIngresses 创建或更新ingresses
