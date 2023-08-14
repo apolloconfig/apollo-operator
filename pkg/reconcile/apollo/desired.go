@@ -195,7 +195,6 @@ func (o ApolloAllInOne) DesiredServices(ctx context.Context, instance client.Obj
 	return desired
 }
 
-// 服务名字修改
 func apollodbService(ctx context.Context, obj client.Object, params models.Params) *corev1.Service {
 	instance := obj.(*apolloiov1alpha1.Apollo)
 	name := naming.AllInOneDBService(instance)
@@ -300,7 +299,7 @@ func portalService(ctx context.Context, obj client.Object, params models.Params)
 					TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: instance.Spec.PortalService.Service.TargetPort},
 				},
 			},
-			Selector:        utils.SelectorLabels(instance),
+			Selector:        utils.SelectorLabelsWithCustom(instance, map[string]string{"app": "portalService"}),
 			SessionAffinity: instance.Spec.PortalService.Service.SessionAffinity,
 		},
 	}
@@ -364,7 +363,7 @@ func buildApolloStatefulSetSpec(ctx context.Context, obj client.Object) (appsv1.
 			},
 		},
 	}
-	var replicas int32 = 2
+	var replicas int32 = 1 // TODO 如果不是1的话，需要使用 headless service
 	return appsv1.StatefulSetSpec{
 		Replicas:        &replicas, // TODO 修改
 		ServiceName:     "apollo-db",
@@ -753,7 +752,7 @@ func buildPortalDepolymentSpec(ctx context.Context, obj client.Object) (appsv1.D
 
 	template := corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels: utils.SelectorLabels(instance),
+			Labels: utils.SelectorLabelsWithCustom(instance, map[string]string{"app": "portalService"}),
 		},
 		Spec: corev1.PodSpec{
 			Containers:       []corev1.Container{container},
@@ -766,7 +765,7 @@ func buildPortalDepolymentSpec(ctx context.Context, obj client.Object) (appsv1.D
 	}
 	return appsv1.DeploymentSpec{
 		Replicas: &instance.Spec.PortalService.Replicas,
-		Selector: &metav1.LabelSelector{MatchLabels: utils.SelectorLabels(instance)},
+		Selector: &metav1.LabelSelector{MatchLabels: utils.SelectorLabelsWithCustom(instance, map[string]string{"app": "portalService"})},
 		Strategy: instance.Spec.PortalService.Strategy,
 		Template: template,
 	}, nil
