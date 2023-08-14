@@ -1,6 +1,9 @@
 # Build the manager binary
 FROM golang:1.18 as builder
 
+ENV GO111MODULE=on \
+    GOPROXY=https://goproxy.cn,direct
+
 WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY go.mod go.mod
@@ -12,6 +15,7 @@ RUN go mod download
 # Copy the go source
 COPY main.go main.go
 COPY api/ api/
+COPY pkg/ pkg/
 COPY controllers/ controllers/
 
 # Build

@@ -41,8 +41,8 @@ spec:
       #IngressClassName:
       #annotations:
       hosts:
-        - apollo-config.v1.com
-        - apollo-config.v2.com
+        - apollo-config-allinone.v1.com
+        - apollo-config-allinone.v2.com
       #tls: #一定要和host保持一直
   adminService:
     image: apolloconfig/apollo-adminservice:2.1.0
@@ -82,8 +82,8 @@ spec:
       #IngressClassName:
       #annotations:
       hosts:
-        - apollo-admin.v1.com
-        - apollo-admin.v2.com
+        - apollo-admin-allinone.v1.com
+        - apollo-admin-allinone.v2.com
       #tls: #一定要和host保持一直
   portalService:
     # TODO(user): Add fields here
@@ -101,8 +101,6 @@ spec:
       sessionAffinity: ClientIP
     config:
       envs: dev
-#      metaServers:
-#        dev: http://apolloenvironment-sample-config.apollo3:8080
       profiles: "github,auth" #TODO 修改到环境变量那里
       contextPath: ""
       file:
@@ -133,6 +131,6 @@ spec:
       annotations:
         nginx.ingress.kubernetes.io/rewrite-target: /
       hosts:
-        - apollo-portal.v1.com
-        - apollo-portal.v2.com
+        - apollo-portal-allinone.v1.com
+        - apollo-portal-allinone.v2.com
       #tls: #一定要和host保持一直

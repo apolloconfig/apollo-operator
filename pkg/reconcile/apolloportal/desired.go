@@ -134,7 +134,7 @@ func portaldbService(ctx context.Context, obj client.Object, params models.Param
 
 	portaldbService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name, // TODO 暂时
+			Name:      name,
 			Namespace: instance.GetNamespace(),
 			Labels:    labels,
 		},

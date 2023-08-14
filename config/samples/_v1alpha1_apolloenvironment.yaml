@@ -6,8 +6,8 @@ spec:
   configdb:
     username: root
     password: mysqlpw
-    host: 172.24.93.158
-    port: 49153
+    host: 172.19.0.3
+    port: 3306
     dbName: ApolloConfigDB
     connectionStringProperties: characterEncoding=utf8
     service:

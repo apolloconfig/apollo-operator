@@ -366,7 +366,7 @@ func buildApolloStatefulSetSpec(ctx context.Context, obj client.Object) (appsv1.
 	var replicas int32 = 1 // TODO 如果不是1的话，需要使用 headless service
 	return appsv1.StatefulSetSpec{
 		Replicas:        &replicas, // TODO 修改
-		ServiceName:     "apollo-db",
+		ServiceName:     naming.AllInOneDBService(instance),
 		MinReadySeconds: 10,
 		Selector:        &metav1.LabelSelector{MatchLabels: utils.SelectorLabelsWithCustom(instance, map[string]string{"app": "apollo-db"})},
 		Template:        template,
