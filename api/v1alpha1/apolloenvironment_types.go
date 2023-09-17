@@ -54,13 +54,13 @@ type ConfigDBService struct {
 }
 
 type ConfigService struct {
-	Image string `json:"image,omitempty"`
+	Image string `json:"image,omitempty" default:"apolloconfig/apollo-configservice:2.1.0"`
 
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 
-	Replicas int32 `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas,omitempty" default:"1"`
 
 	ContainerPort int32 `json:"containerPort,omitempty"`
 
@@ -93,13 +93,13 @@ type ConfigServiceConfig struct {
 }
 
 type AdminService struct {
-	Image string `json:"image,omitempty"`
+	Image string `json:"image,omitempty" default:"apolloconfig/apollo-adminservice:2.1.0"`
 
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 
-	Replicas int32 `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas,omitempty" default:"1"`
 
 	ContainerPort int32 `json:"containerPort,omitempty"`
 

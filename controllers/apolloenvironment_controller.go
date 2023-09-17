@@ -25,6 +25,7 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -112,8 +113,8 @@ func NewApolloEnvironmentReconciler(p ReconcilerParams) *ApolloEnvironmentReconc
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *ApolloEnvironmentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// logger := log.FromContext(ctx)
-	log := r.log.WithValues("ApolloPortal", req.NamespacedName)
-	log.Info("进入ApolloPortalReconciler Reconcile")
+	log := r.log.WithValues("ApolloEnvironment", req.NamespacedName)
+	log.Info("ApolloEnvironmentReconciler Reconcile")
 	// TODO(user): your logic here
 	var instance apolloiov1alpha1.ApolloEnvironment
 	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {
@@ -173,7 +174,6 @@ func (r *ApolloEnvironmentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&appsv1.DaemonSet{}).
-		Owns(&appsv1.StatefulSet{}).
+		Owns(&networkingv1.Ingress{}).
 		Complete(r)
 }

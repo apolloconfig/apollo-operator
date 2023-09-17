@@ -31,13 +31,13 @@ type ApolloPortalSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Image string `json:"image,omitempty"`
+	Image string `json:"image,omitempty" default:"apolloconfig/apollo-portal:2.1.0"`
 
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 
-	Replicas int32 `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas,omitempty" default:"1"`
 
 	ContainerPort int32 `json:"containerPort,omitempty"`
 

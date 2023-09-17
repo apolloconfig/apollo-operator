@@ -25,11 +25,14 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -113,7 +116,7 @@ func NewApolloPortalReconciler(p ReconcilerParams) *ApolloPortalReconciler {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *ApolloPortalReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.log.WithValues("ApolloPortal", req.NamespacedName)
-	log.Info("进入ApolloPortalReconciler Reconcile")
+	log.Info("ApolloPortalReconciler Reconcile")
 
 	var instance apolloiov1alpha1.ApolloPortal
 	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {
@@ -165,6 +168,30 @@ func (r *ApolloPortalReconciler) RunTasks(ctx context.Context, instance client.O
 	return nil
 }
 
+func setDefaults(p any) {
+	// Iterate over the fields of the ApolloPortalSpec struct using reflection
+	// and set the default value for each field if the field is not provided
+	// by the caller of the constructor function.
+	for i := 0; i < reflect.TypeOf(p).NumField(); i++ {
+		field := reflect.TypeOf(p).Field(i)
+
+		if value, ok := field.Tag.Lookup("default"); ok {
+			switch field.Type.Kind() {
+			case reflect.String:
+				if reflect.ValueOf(p).Field(i).String() == "" {
+					reflect.ValueOf(p).Field(i).SetString(value)
+				}
+			case reflect.Int:
+				if reflect.ValueOf(p).Field(i).Int() == 0 {
+					if intValue, err := strconv.ParseInt(value, 10, 32); err == nil {
+						reflect.ValueOf(p).Field(i).SetInt(intValue)
+					}
+				}
+			}
+		}
+	}
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *ApolloPortalReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
@@ -173,7 +200,6 @@ func (r *ApolloPortalReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&appsv1.DaemonSet{}).
-		Owns(&appsv1.StatefulSet{}).
+		Owns(&networkingv1.Ingress{}).
 		Complete(r)
 }

@@ -40,7 +40,7 @@ func Labels(instance client.Object, name string, filterLabels []string) map[stri
 }
 
 // SelectorLabels return the common labels to all objects that are part of a managed Apollo Operator to use as selector.
-// Selector labels are immutable for Deployment, StatefulSet and DaemonSet, therefore, no labels in selector should be
+// Selector labels are immutable for Deployment, StatefulSet, therefore, no labels in selector should be
 // expected to be modified for the lifetime of the object.
 func SelectorLabels(instance client.Object) map[string]string {
 	// 如果你修改这里，那么所有资源的delete部分中，ListOption都要同步修改

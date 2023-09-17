@@ -24,6 +24,7 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
 	"sync"
@@ -115,7 +116,7 @@ func NewApolloAllInOneReconciler(p ReconcilerParams) *ApolloReconciler {
 func (r *ApolloReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// _ = log.FromContext(ctx)
 	log := r.log.WithValues("ApolloAllInOne", req.NamespacedName)
-	log.Info("进入ApolloAllInOneReconciler Reconcile")
+	log.Info("ApolloAllInOneReconciler Reconcile")
 	// TODO(user): your logic here
 	var instance apolloiov1alpha1.Apollo
 	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {
@@ -175,9 +176,8 @@ func (r *ApolloReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.ConfigMap{}).
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&corev1.Service{}).
-		Owns(&appsv1.StatefulSet{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&appsv1.DaemonSet{}).
 		Owns(&appsv1.StatefulSet{}).
+		Owns(&networkingv1.Ingress{}).
 		Complete(r)
 }
