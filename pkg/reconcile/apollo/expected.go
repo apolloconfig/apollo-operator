@@ -21,7 +21,7 @@ func (o ApolloAllInOne) ExpectedConfigMaps(ctx context.Context, instance client.
 	for _, obj := range expected {
 		desired := obj
 
-		// 建立关联后，删除apollo-portal资源时就会将configmap也删除掉
+		// After establishing the OwnerReference, deleting the apollo-portal resource will also delete the configmap
 		if err := controllerutil.SetControllerReference(instance, &desired, params.Scheme); err != nil {
 			return fmt.Errorf("failed to set controller reference: %w", err)
 		}
@@ -44,7 +44,7 @@ func (o ApolloAllInOne) ExpectedConfigMaps(ctx context.Context, instance client.
 				return fmt.Errorf("failed to create: %w", createErr)
 			}
 			params.Log.V(2).Info("created", "configmap.name", desired.Name, "configmap.namespace", desired.Namespace)
-			// 创建成功进入下次循环
+			// Successfully created and entered the next cycle
 			continue
 		} else if getErr != nil {
 			return fmt.Errorf("failed to get: %w", getErr)
@@ -53,8 +53,6 @@ func (o ApolloAllInOne) ExpectedConfigMaps(ctx context.Context, instance client.
 		// it exists already, merge the two if the end result isn't identical to the existing one
 		updated := existing.DeepCopy()
 		utils.InitObjectMeta(updated)
-		// TODO 删除该日志
-		params.Log.V(2).Info("查看existing和updated", "existing configmap：", existing, "updated configmap：", updated)
 
 		updated.SetAnnotations(desired.GetAnnotations())
 		updated.SetLabels(desired.GetLabels())
@@ -63,7 +61,7 @@ func (o ApolloAllInOne) ExpectedConfigMaps(ctx context.Context, instance client.
 		updated.Data = desired.Data
 		updated.BinaryData = desired.BinaryData
 
-		// 将旧的configmap修改为新的configmap
+		// Modify the old configmap to the new configmap
 		patch := client.MergeFrom(existing)
 		if err := params.Client.Patch(ctx, updated, patch); err != nil {
 			return fmt.Errorf("failed to apply changes: %w", err)
@@ -79,12 +77,12 @@ func (o ApolloAllInOne) ExpectedConfigMaps(ctx context.Context, instance client.
 	return nil
 }
 
-// ExpectedEndpoints 创建或更新endpoints
+// ExpectedEndpoints Create or update endpoints
 func (o ApolloAllInOne) ExpectedEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints, retry bool) error {
 	for _, obj := range expected {
 		desired := obj
 
-		// 建立关联后，删除apollo-portal资源时就会将Endpoints也删除掉
+		// After establishing the OwnerReference, deleting the apollo-portal resource will also delete the endpoints
 		if err := controllerutil.SetControllerReference(instance, &desired, params.Scheme); err != nil {
 			return fmt.Errorf("failed to set controller reference: %w", err)
 		}
@@ -93,7 +91,7 @@ func (o ApolloAllInOne) ExpectedEndpoints(ctx context.Context, instance client.O
 		namespaceName := types.NamespacedName{Namespace: desired.Namespace, Name: desired.Name}
 		getErr := params.Client.Get(ctx, namespaceName, existing)
 		if getErr != nil && k8serrors.IsNotFound(getErr) {
-			// 不存在则直接创建desired的资源
+			// If it does not exist, create the desired resource directly
 			if createErr := params.Client.Create(ctx, &desired); createErr != nil {
 				if k8serrors.IsAlreadyExists(createErr) && retry {
 					// let's try again? we probably had multiple updates at one, and now it exists already
@@ -108,7 +106,7 @@ func (o ApolloAllInOne) ExpectedEndpoints(ctx context.Context, instance client.O
 				return fmt.Errorf("failed to create: %w", createErr)
 			}
 			params.Log.V(2).Info("created", "endpoints.name", desired.Name, "endpoints.namespace", desired.Namespace)
-			// 创建成功进入下次循环
+			// Successfully created and entered the next cycle
 			continue
 		} else if getErr != nil {
 			return fmt.Errorf("failed to get: %w", getErr)
@@ -117,8 +115,6 @@ func (o ApolloAllInOne) ExpectedEndpoints(ctx context.Context, instance client.O
 		// it exists already, merge the two if the end result isn't identical to the existing one
 		updated := existing.DeepCopy()
 		utils.InitObjectMeta(updated)
-		// TODO 删除该日志
-		params.Log.V(2).Info("查看existing和updated", "existing endpoints：", existing, "updated endpoints：", updated)
 
 		if updated.Subsets == nil {
 			updated.Subsets = []corev1.EndpointSubset{}
@@ -127,12 +123,12 @@ func (o ApolloAllInOne) ExpectedEndpoints(ctx context.Context, instance client.O
 		updated.SetLabels(desired.GetLabels())
 		updated.SetOwnerReferences(desired.GetOwnerReferences())
 
-		// 用 desired 替换
+		// Replace with desired
 		for i, subset := range desired.Subsets {
 			updated.Subsets[i] = subset
 		}
 
-		// 将旧的Endpoints修改为新的Endpoints
+		// Modify old Endpoints to new Endpoints
 		patch := client.MergeFrom(existing)
 		if err := params.Client.Patch(ctx, updated, patch); err != nil {
 			return fmt.Errorf("failed to apply changes: %w", err)
@@ -217,7 +213,7 @@ func (o ApolloAllInOne) ExpectedServices(ctx context.Context, instance client.Ob
 	return nil
 }
 
-// ExpectedDeployments 创建或更新deployment
+// ExpectedDeployments Create or update deployment
 func (o ApolloAllInOne) ExpectedDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
 	for _, obj := range expected {
 		desired := obj
@@ -256,8 +252,8 @@ func (o ApolloAllInOne) ExpectedDeployments(ctx context.Context, instance client
 		updated.SetLabels(desired.GetLabels())
 		updated.SetOwnerReferences(desired.GetOwnerReferences())
 
-		updated.Spec = desired.Spec // 一定要注意spec中的slice的来源，不能用遍历map的方式获取，否则会导致每次调谐重新创建pod
-
+		// Be sure to pay attention to the source of the slice in the spec, and it cannot be obtained by traversing the map, otherwise it will cause the pod to be recreated every time the tuning is performed
+		updated.Spec = desired.Spec
 		patch := client.MergeFrom(existing)
 		if err := params.Client.Patch(ctx, updated, patch); err != nil {
 			return fmt.Errorf("failed to apply changes: %w", err)
@@ -269,7 +265,7 @@ func (o ApolloAllInOne) ExpectedDeployments(ctx context.Context, instance client
 	return nil
 }
 
-// ExpectedStatefulSets 创建或更新statefulset
+// ExpectedStatefulSets Create or update statefulset
 func (o ApolloAllInOne) ExpectedStatefulSets(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.StatefulSet) error {
 	for _, obj := range expected {
 		desired := obj
@@ -309,7 +305,8 @@ func (o ApolloAllInOne) ExpectedStatefulSets(ctx context.Context, instance clien
 		updated.SetLabels(desired.GetLabels())
 		updated.SetOwnerReferences(desired.GetOwnerReferences())
 
-		updated.Spec = desired.Spec // 一定要注意spec中的slice的来源，不能用遍历map的方式获取，否则会导致每次调谐重新创建pod
+		// Be sure to pay attention to the source of the slice in the spec, and it cannot be obtained by traversing the map, otherwise it will cause the pod to be recreated every time the tuning is performed
+		updated.Spec = desired.Spec
 
 		patch := client.MergeFrom(existing)
 		if err := params.Client.Patch(ctx, updated, patch); err != nil {
@@ -362,7 +359,7 @@ func hasVolumeClaimsTemplatesChanged(desired, existing *appsv1.StatefulSet) bool
 	return false
 }
 
-// ExpectedIngresses 创建或更新ingresses
+// ExpectedIngresses Create or update ingresses
 func (o ApolloAllInOne) ExpectedIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error {
 	for _, obj := range expected {
 		desired := obj

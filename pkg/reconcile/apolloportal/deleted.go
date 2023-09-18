@@ -24,7 +24,7 @@ func (o ApolloPortal) DeleteConfigMaps(ctx context.Context, instance client.Obje
 		return fmt.Errorf("failed to list configmap : %w", err)
 	}
 
-	// 删除不属于expected的部分
+	// Delete parts that are not expected
 	for i := range list.Items {
 		existing := list.Items[i]
 		del := true
@@ -46,7 +46,6 @@ func (o ApolloPortal) DeleteConfigMaps(ctx context.Context, instance client.Obje
 	return nil
 }
 
-// 删除endpoints
 func (o ApolloPortal) DeleteEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -60,7 +59,7 @@ func (o ApolloPortal) DeleteEndpoints(ctx context.Context, instance client.Objec
 		return fmt.Errorf("failed to list endpoints : %w", err)
 	}
 
-	// 删除不属于expected的部分
+	// Delete parts that are not expected
 	for i := range list.Items {
 		existing := list.Items[i]
 		del := true
@@ -82,7 +81,6 @@ func (o ApolloPortal) DeleteEndpoints(ctx context.Context, instance client.Objec
 	return nil
 }
 
-// 删除service
 func (o ApolloPortal) DeleteServices(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Service) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -117,7 +115,6 @@ func (o ApolloPortal) DeleteServices(ctx context.Context, instance client.Object
 	return nil
 }
 
-// 删除deployment
 func (o ApolloPortal) DeleteDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -152,7 +149,6 @@ func (o ApolloPortal) DeleteDeployments(ctx context.Context, instance client.Obj
 	return nil
 }
 
-// DeleteIngresses 删除ingress
 func (o ApolloPortal) DeleteIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -166,7 +162,7 @@ func (o ApolloPortal) DeleteIngresses(ctx context.Context, instance client.Objec
 		return fmt.Errorf("failed to list ingress : %w", err)
 	}
 
-	// 删除不属于expected的部分
+	// Delete parts that are not expected
 	for i := range list.Items {
 		existing := list.Items[i]
 		del := true

@@ -135,7 +135,7 @@ func (r *ApolloEnvironmentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		Scheme:   r.scheme,
 		Recorder: r.recorder,
 	}
-	// TODO 为 instance 增加默认值
+	// TODO Add default values for instance
 
 	if err := r.RunTasks(ctx, &instance, params); err != nil {
 		//return ctrl.Result{}, err

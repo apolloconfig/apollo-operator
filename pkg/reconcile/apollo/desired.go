@@ -859,7 +859,7 @@ func buildPortalProbe(ctx context.Context, instance *apolloiov1alpha1.Apollo) (l
 	livenessProbe = &instance.Spec.PortalService.Probe.Liveness
 	readinessProbe = &instance.Spec.PortalService.Probe.Readineeds
 
-	// TODO 删除 ProbeHandler，因为已完全开放probe的字段
+	// TODO Delete ProbeHandler because the fields of the probe have been fully opened
 	livenessProbe.ProbeHandler = corev1.ProbeHandler{
 		TCPSocket: &corev1.TCPSocketAction{
 			Port: intstr.IntOrString{Type: intstr.Int, IntVal: instance.Spec.PortalService.ContainerPort},

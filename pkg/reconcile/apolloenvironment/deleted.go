@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// DeleteConfigMaps 删除configmap
+// DeleteConfigMaps delete configmap
 func (o ApolloEnvironment) DeleteConfigMaps(ctx context.Context, instance client.Object, params models.Params, expected []corev1.ConfigMap) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -25,7 +25,7 @@ func (o ApolloEnvironment) DeleteConfigMaps(ctx context.Context, instance client
 		return fmt.Errorf("failed to list configmap : %w", err)
 	}
 
-	// 删除不属于expected的部分
+	// Delete parts that are not expected
 	for i := range list.Items {
 		existing := list.Items[i]
 		del := true
@@ -47,7 +47,7 @@ func (o ApolloEnvironment) DeleteConfigMaps(ctx context.Context, instance client
 	return nil
 }
 
-// DeleteEndpoints 删除endpoints
+// DeleteEndpoints delete endpoints
 func (o ApolloEnvironment) DeleteEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -61,7 +61,7 @@ func (o ApolloEnvironment) DeleteEndpoints(ctx context.Context, instance client.
 		return fmt.Errorf("failed to list endpoints : %w", err)
 	}
 
-	// 删除不属于expected的部分
+	// Delete parts that are not expected
 	for i := range list.Items {
 		existing := list.Items[i]
 		del := true
@@ -83,7 +83,7 @@ func (o ApolloEnvironment) DeleteEndpoints(ctx context.Context, instance client.
 	return nil
 }
 
-// DeleteServices 删除service
+// DeleteServices delete service
 func (o ApolloEnvironment) DeleteServices(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Service) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -118,7 +118,7 @@ func (o ApolloEnvironment) DeleteServices(ctx context.Context, instance client.O
 	return nil
 }
 
-// DeleteDeployments 删除deployment
+// DeleteDeployments delete deployment
 func (o ApolloEnvironment) DeleteDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -153,7 +153,7 @@ func (o ApolloEnvironment) DeleteDeployments(ctx context.Context, instance clien
 	return nil
 }
 
-// DeleteIngresses 删除ingress
+// DeleteIngresses delete ingress
 func (o ApolloEnvironment) DeleteIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error {
 	opts := []client.ListOption{
 		client.InNamespace(instance.GetNamespace()),
@@ -167,7 +167,7 @@ func (o ApolloEnvironment) DeleteIngresses(ctx context.Context, instance client.
 		return fmt.Errorf("failed to list ingress : %w", err)
 	}
 
-	// 删除不属于expected的部分
+	// Delete parts that are not expected
 	for i := range list.Items {
 		existing := list.Items[i]
 		del := true

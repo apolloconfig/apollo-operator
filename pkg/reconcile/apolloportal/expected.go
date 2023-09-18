@@ -16,12 +16,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// ExpectedConfigMaps 创建或更新configmaps
+// ExpectedConfigMaps Create or update configmaps
 func (o ApolloPortal) ExpectedConfigMaps(ctx context.Context, instance client.Object, params models.Params, expected []corev1.ConfigMap, retry bool) error {
 	for _, obj := range expected {
 		desired := obj
 
-		// 建立关联后，删除apollo-portal资源时就会将configmap也删除掉
+		// After establishing the OwnerReference, deleting the apollo-portal resource will also delete the configmaps
 		if err := controllerutil.SetControllerReference(instance, &desired, params.Scheme); err != nil {
 			return fmt.Errorf("failed to set controller reference: %w", err)
 		}
@@ -30,7 +30,7 @@ func (o ApolloPortal) ExpectedConfigMaps(ctx context.Context, instance client.Ob
 		namespaceName := types.NamespacedName{Namespace: desired.Namespace, Name: desired.Name}
 		getErr := params.Client.Get(ctx, namespaceName, existing)
 		if getErr != nil && k8serrors.IsNotFound(getErr) {
-			// 不存在则直接创建desired的资源
+			// If it does not exist, create the desired resource directly
 			if createErr := params.Client.Create(ctx, &desired); createErr != nil {
 				if k8serrors.IsAlreadyExists(createErr) && retry {
 					// let's try again? we probably had multiple updates at one, and now it exists already
@@ -44,7 +44,7 @@ func (o ApolloPortal) ExpectedConfigMaps(ctx context.Context, instance client.Ob
 				return fmt.Errorf("failed to create: %w", createErr)
 			}
 			params.Log.V(2).Info("created", "configmap.name", desired.Name, "configmap.namespace", desired.Namespace)
-			// 创建成功进入下次循环
+			// Successfully created and entered the next cycle
 			continue
 		} else if getErr != nil {
 			return fmt.Errorf("failed to get: %w", getErr)
@@ -53,8 +53,6 @@ func (o ApolloPortal) ExpectedConfigMaps(ctx context.Context, instance client.Ob
 		// it exists already, merge the two if the end result isn't identical to the existing one
 		updated := existing.DeepCopy()
 		utils.InitObjectMeta(updated)
-		// TODO 删除该日志
-		params.Log.V(2).Info("查看existing和updated", "existing configmap：", existing, "updated configmap：", updated)
 
 		updated.SetAnnotations(desired.GetAnnotations())
 		updated.SetLabels(desired.GetLabels())
@@ -63,7 +61,7 @@ func (o ApolloPortal) ExpectedConfigMaps(ctx context.Context, instance client.Ob
 		updated.Data = desired.Data
 		updated.BinaryData = desired.BinaryData
 
-		// 将旧的configmap修改为新的configmap
+		// Modify the old configmap to the new configmap
 		patch := client.MergeFrom(existing)
 		if err := params.Client.Patch(ctx, updated, patch); err != nil {
 			return fmt.Errorf("failed to apply changes: %w", err)
@@ -79,12 +77,12 @@ func (o ApolloPortal) ExpectedConfigMaps(ctx context.Context, instance client.Ob
 	return nil
 }
 
-// ExpectedEndpoints 创建或更新endpoints
+// ExpectedEndpoints Create or update endpoints
 func (o ApolloPortal) ExpectedEndpoints(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Endpoints, retry bool) error {
 	for _, obj := range expected {
 		desired := obj
 
-		// 建立关联后，删除apollo-portal资源时就会将Endpoints也删除掉
+		// After establishing the OwnerReference, deleting the apollo-portal resource will also delete the endpoints
 		if err := controllerutil.SetControllerReference(instance, &desired, params.Scheme); err != nil {
 			return fmt.Errorf("failed to set controller reference: %w", err)
 		}
@@ -93,7 +91,7 @@ func (o ApolloPortal) ExpectedEndpoints(ctx context.Context, instance client.Obj
 		namespaceName := types.NamespacedName{Namespace: desired.Namespace, Name: desired.Name}
 		getErr := params.Client.Get(ctx, namespaceName, existing)
 		if getErr != nil && k8serrors.IsNotFound(getErr) {
-			// 不存在则直接创建desired的资源
+			// If it does not exist, create the desired resource directly
 			if createErr := params.Client.Create(ctx, &desired); createErr != nil {
 				if k8serrors.IsAlreadyExists(createErr) && retry {
 					// let's try again? we probably had multiple updates at one, and now it exists already
@@ -108,7 +106,7 @@ func (o ApolloPortal) ExpectedEndpoints(ctx context.Context, instance client.Obj
 				return fmt.Errorf("failed to create: %w", createErr)
 			}
 			params.Log.V(2).Info("created", "endpoints.name", desired.Name, "endpoints.namespace", desired.Namespace)
-			// 创建成功进入下次循环
+			// Successfully created and entered the next cycle
 			continue
 		} else if getErr != nil {
 			return fmt.Errorf("failed to get: %w", getErr)
@@ -117,8 +115,6 @@ func (o ApolloPortal) ExpectedEndpoints(ctx context.Context, instance client.Obj
 		// it exists already, merge the two if the end result isn't identical to the existing one
 		updated := existing.DeepCopy()
 		utils.InitObjectMeta(updated)
-		// TODO 删除该日志
-		params.Log.V(2).Info("查看existing和updated", "existing endpoints：", existing, "updated endpoints：", updated)
 
 		if updated.Subsets == nil {
 			updated.Subsets = []corev1.EndpointSubset{}
@@ -127,12 +123,12 @@ func (o ApolloPortal) ExpectedEndpoints(ctx context.Context, instance client.Obj
 		updated.SetLabels(desired.GetLabels())
 		updated.SetOwnerReferences(desired.GetOwnerReferences())
 
-		// 用 desired 替换
+		// Replace with desired
 		for i, subset := range desired.Subsets {
 			updated.Subsets[i] = subset
 		}
 
-		// 将旧的Endpoints修改为新的Endpoints
+		// Modify old Endpoints to new Endpoints
 		patch := client.MergeFrom(existing)
 		if err := params.Client.Patch(ctx, updated, patch); err != nil {
 			return fmt.Errorf("failed to apply changes: %w", err)
@@ -165,7 +161,7 @@ func EndpointsChanged(desired *corev1.Endpoints, existing *corev1.Endpoints) boo
 	return false
 }
 
-// ExpectedServices 创建或更新service
+// ExpectedServices Create or update service
 func (o ApolloPortal) ExpectedServices(ctx context.Context, instance client.Object, params models.Params, expected []corev1.Service) error {
 	for _, obj := range expected {
 		desired := obj
@@ -217,7 +213,7 @@ func (o ApolloPortal) ExpectedServices(ctx context.Context, instance client.Obje
 	return nil
 }
 
-// ExpectedDeployments 创建或更新deployment
+// ExpectedDeployments Create or update deployment
 func (o ApolloPortal) ExpectedDeployments(ctx context.Context, instance client.Object, params models.Params, expected []appsv1.Deployment) error {
 	for _, obj := range expected {
 		desired := obj
@@ -269,7 +265,7 @@ func (o ApolloPortal) ExpectedDeployments(ctx context.Context, instance client.O
 	return nil
 }
 
-// ExpectedIngresses 创建或更新ingresses
+// ExpectedIngresses Create or update ingresses
 func (o ApolloPortal) ExpectedIngresses(ctx context.Context, instance client.Object, params models.Params, expected []networkingv1.Ingress) error {
 	for _, obj := range expected {
 		desired := obj

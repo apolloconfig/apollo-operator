@@ -70,7 +70,7 @@ type Service struct {
 	Port       int32              `json:"port,omitempty"`
 	TargetPort int32              `json:"targetPort,omitempty"`
 	Type       corev1.ServiceType `json:"type,omitempty"`
-	// TODO 后续看是否必要，不必则删除
+	// TODO Follow up to see if necessary, delete if not necessary
 	SessionAffinity corev1.ServiceAffinity `json:"sessionAffinity,omitempty"`
 }
 
