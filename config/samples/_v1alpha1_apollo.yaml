@@ -1,0 +1,136 @@
+apiVersion: apolloconfig.com/v1alpha1
+kind: Apollo
+metadata:
+  name: apollo-sample
+spec:
+  configService:
+    image: apolloconfig/apollo-configservice:2.1.0
+    imagePullPolicy: IfNotPresent
+    #imagePullSecrets:
+    replicas: 1
+    containerPort: 8080
+    #strategy:
+    #env:
+    service:
+      port: 8080
+      targetPort: 8080
+      type: ClusterIP
+      #sessionAffinity: ClientIP
+    config:
+      profiles: "github,kubernetes" #TODO 修改到环境变量那里
+      contextPath: ""
+    #    resources:
+    #      requests:
+    #        memory: "64Mi"
+    #        cpu: "250m"
+    #      limits:
+    #        memory: "128Mi"
+    #        cpu: "500m"
+    probe:
+      # 这里是k8s中探针的格式
+      livenessProbe:
+        initialDelaySeconds: 100
+        periodSeconds: 10
+      readinessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 5
+    #nodeSelector:
+    #affinity:
+    #tolerations:
+    ingress:
+      #IngressClassName:
+      #annotations:
+      hosts:
+        - apollo-config-allinone.v1.com
+        - apollo-config-allinone.v2.com
+      #tls: #一定要和host保持一直
+  adminService:
+    image: apolloconfig/apollo-adminservice:2.1.0
+    imagePullPolicy: IfNotPresent
+    #imagePullSecrets:
+    replicas: 1
+    containerPort: 8090
+    #strategy:
+    #env:
+    service:
+      port: 8090
+      targetPort: 8090
+      type: ClusterIP
+      #sessionAffinity: ClientIP
+    config:
+      profiles: "github,kubernetes" #TODO 修改到环境变量那里
+      contextPath: ""
+    #    resources:
+    #      requests:
+    #        memory: "64Mi"
+    #        cpu: "250m"
+    #      limits:
+    #        memory: "128Mi"
+    #        cpu: "500m"
+    probe:
+      # 这里是k8s中探针的格式
+      livenessProbe:
+        initialDelaySeconds: 100
+        periodSeconds: 10
+      readinessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 5
+    #nodeSelector:
+    #affinity:
+    #tolerations:
+    ingress:
+      #IngressClassName:
+      #annotations:
+      hosts:
+        - apollo-admin-allinone.v1.com
+        - apollo-admin-allinone.v2.com
+      #tls: #一定要和host保持一直
+  portalService:
+    # TODO(user): Add fields here
+    image: apolloconfig/apollo-portal:2.1.0
+    imagePullPolicy: IfNotPresent
+    #imagePullSecrets:
+    replicas: 1
+    containerPort: 8070
+    #strategy:
+    #env:
+    service:
+      port: 8070
+      targetPort: 8070
+      type: ClusterIP
+      sessionAffinity: ClientIP
+    config:
+      envs: dev
+      profiles: "github,auth" #TODO 修改到环境变量那里
+      contextPath: ""
+      file:
+        - name: file1
+          content: test1
+        - name: file2
+          content: test2
+    #  resources:
+    #    requests:
+    #      memory: "64Mi"
+    #      cpu: "250m"
+    #    limits:
+    #      memory: "128Mi"
+    #      cpu: "500m"
+    probe:
+      # 这里是k8s中探针的格式
+      livenessProbe:
+        initialDelaySeconds: 100
+        periodSeconds: 10
+      readinessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 5
+    #nodeSelector:
+    #affinity:
+    #tolerations:
+    ingress:
+      ingressClassName: nginx
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+      hosts:
+        - apollo-portal-allinone.v1.com
+        - apollo-portal-allinone.v2.com
+      #tls: #一定要和host保持一直

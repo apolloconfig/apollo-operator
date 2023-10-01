@@ -1,0 +1,31 @@
+domain: apolloconfig.com
+layout:
+- go.kubebuilder.io/v3
+projectName: apollo-operator
+repo: apolloconfig.com/apollo-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: apolloconfig.com
+  kind: ApolloEnvironment
+  path: apolloconfig.com/apollo-operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: apolloconfig.com
+  kind: ApolloPortal
+  path: apolloconfig.com/apollo-operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: apolloconfig.com
+  kind: Apollo
+  path: apolloconfig.com/apollo-operator/api/v1alpha1
+  version: v1alpha1
+version: "3"

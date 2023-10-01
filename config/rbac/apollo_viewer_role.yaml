@@ -1,0 +1,20 @@
+# permissions for end users to view apolloes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: apollo-viewer-role
+rules:
+- apiGroups:
+  - apolloconfig.com
+  resources:
+  - apolloes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apolloconfig.com
+  resources:
+  - apolloes/status
+  verbs:
+  - get
